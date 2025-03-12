@@ -216,6 +216,7 @@ class GeminiParser:
 
             event_list = []
             # Create Event object by parsing Json fields
+            print("\nEvent Data:\n", event_data)
             for event in event_data["events"]:
                 print("\nEvent:\n", json.dumps(event, indent=4))
                 print()
