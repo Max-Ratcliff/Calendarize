@@ -61,8 +61,9 @@ async def convert(
             print("ERROR: could not remove file:", e)
 
     for event in event_list:
-        event.set_gcal_link()
-        event.set_outlook_link()
-        event.set_ical_string()
+        if event is not None:
+            event.set_gcal_link()
+            event.set_outlook_link()
+            event.set_ical_string()
         print(event)
     return event_list

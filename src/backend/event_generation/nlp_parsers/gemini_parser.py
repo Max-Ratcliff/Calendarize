@@ -196,7 +196,7 @@ class GeminiParser:
             # Assuming 'response' is your raw response from Gemini API
             # Extract the first candidate’s first part text
             raw_text = response.candidates[0].content.parts[0].text
-            
+
             if not raw_text:
                 raise ValueError("No event data extracted from the text")
 
@@ -209,7 +209,7 @@ class GeminiParser:
                 raw_text = raw_text[:-3].strip()
 
             clean_text = raw_text
-            
+
             if not clean_text:
                 raise ValueError("No event data extracted from the text")
 
