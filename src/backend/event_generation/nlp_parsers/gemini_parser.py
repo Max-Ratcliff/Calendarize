@@ -39,7 +39,6 @@ class GeminiParser:
                         Use the Information about the current time: **{time_info}** and the current timezone is: **{current_time_zone}**.
 
                         **Important Insctructions:**
-                        - It is important **to always put a date in the future** unless it specifies a date in the past. If the start date is before the current date then double check the event
                         - If a date is relative (e.g., "tomorrow at 2pm", "in two hours"), convert it into an absolute datetime based on the current time.
                         - Be careful with relative dates (e.g., "Next Monday") always pay close attention to the year, and make sure the date is in the future.
                             dont assume that monday always falls on the same day of the month every year. **double check this every time**.
@@ -110,27 +109,49 @@ class GeminiParser:
 
                         here is an example of the JSON object you should return:
 
-                        request: Slug Ai Meeting every tuesday thursday at 5pm
-                        event:
-                        {{
+                        request: Slug Ai Meeting every tuesday thursday at 5pm, and monday meeting every week 7-9pm from 03/03-05/10 with bob@example.com at the red room
+                        result:
+                        {
                             "events": [
-                            {{
-                                "title": "Slug Ai Meeting",
-                                "is_all_day": false,
-                                "start_time": "20250220T170000",
-                                "time_zone": "America/Los_Angeles",
-                                "end_time": "20250220T180000",
-                                "description": "Bi-weekly Slug Ai meeting",
-                                "location": None,
-                                "attendees": [],
-                                "is_recurring": true,
-                                "recurrence_pattern": "WEEKLY",
-                                "recurrence_days": ["TU", "TH"],
-                                "recurrence_count": None,
-                                "recurrence_end_date": None
-                            }},
+                                {
+                                    "title": "Slug Ai Meeting",
+                                    "is_all_day": false,
+                                    "start_time": "20250318T170000",
+                                    "end_time": "20250318T180000",
+                                    "time_zone": "America/Los_Angeles",
+                                    "description": null,
+                                    "location": null,
+                                    "attendees": [],
+                                    "is_recurring": true,
+                                    "recurrence_pattern": "WEEKLY",
+                                    "recurrence_days": [
+                                            "TU",
+                                            "TH"
+                                            ],
+                                    "recurrence_count": null,
+                                    "recurrence_end_date": null
+                                },
+                                {
+                                    "title": "Monday Meeting",
+                                    "is_all_day": false,
+                                    "start_time": "20250303T190000",
+                                    "end_time": "20250303T210000",
+                                    "time_zone": "America/Los_Angeles",
+                                    "description": "Meeting with bob@example.com at the red room",
+                                    "location": "the red room",
+                                    "attendees": [
+                                        "bob@example.com"
+                                    ],
+                                    "is_recurring": true,
+                                    "recurrence_pattern": "WEEKLY",
+                                    "recurrence_days": [
+                                        "MO"
+                                    ],
+                                    "recurrence_count": null,
+                                    "recurrence_end_date": "20250510"
+                                },
                             ]
-                        }}
+                        }
                         """
             print("\nsending request to Gemini API: ", text)
             print("Time Info: ", time_info)
