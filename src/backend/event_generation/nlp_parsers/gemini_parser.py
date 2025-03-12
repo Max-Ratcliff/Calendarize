@@ -116,7 +116,7 @@ class GeminiParser:
                             "events": [
                             {{
                                 "title": "Slug Ai Meeting",
-                                "is_all_day": False,
+                                "is_all_day": false,
                                 "start_time": "20250220T170000",
                                 "time_zone": "America/Los_Angeles",
                                 "end_time": "20250220T180000",
@@ -196,7 +196,7 @@ class GeminiParser:
             # Assuming 'response' is your raw response from Gemini API
             # Extract the first candidate’s first part text
             raw_text = response.candidates[0].content.parts[0].text
-            
+
             print("\nRaw Text:\n", raw_text)
 
             if not raw_text:
