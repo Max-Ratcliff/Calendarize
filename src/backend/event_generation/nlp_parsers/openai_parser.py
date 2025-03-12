@@ -45,7 +45,6 @@ class OpenAiParser:
                         Use the Information about the current time: **{time_info}** and the current timezone is: **{current_time_zone}**.
 
                         **Important Insctructions:**
-                        - It is important **to always put a date in the future** unless it specifies a date in the past. If the start date is before the current date then double check the event
                         - If a date is relative (e.g., "tomorrow at 2pm", "in two hours"), convert it into an absolute datetime based on the current time.
                         - Be careful with relative dates (e.g., "Next Monday") always pay close attention to the year, and make sure the date is in the future.
                             dont assume that monday always falls on the same day of the month every year. **double check this every time**.

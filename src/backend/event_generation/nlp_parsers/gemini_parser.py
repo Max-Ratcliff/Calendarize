@@ -173,14 +173,14 @@ class GeminiParser:
         # catch any errors gracefully
         except ConnectionError as ce:
             logging.error(
-                "Connection error while sending request to OpenAI API: %s", ce
+                "Connection error while sending request to Gemini API: %s", ce
             )
-            return "A connection error occurred while communicating with OpenAI API. Please check your internet connection."
+            return "A connection error occurred while communicating with Gemini API. Please check your internet connection."
 
         except ValueError as ve:
-            logging.error("Invalid input or response from OpenAI: %s", ve)
+            logging.error("Invalid input or response from Gemini: %s", ve)
             return (
-                "An error occurred due to an invalid input or response from OpenAI API."
+                "An error occurred due to an invalid input or response from Gemini API."
             )
 
         except Exception as e:
@@ -196,6 +196,8 @@ class GeminiParser:
             # Assuming 'response' is your raw response from Gemini API
             # Extract the first candidate’s first part text
             raw_text = response.candidates[0].content.parts[0].text
+            
+            print("\nRaw Text:\n", raw_text)
 
             if not raw_text:
                 raise ValueError("No event data extracted from the text")
@@ -213,12 +215,13 @@ class GeminiParser:
             if not clean_text:
                 raise ValueError("No event data extracted from the text")
 
-            # print("\nCleaned JSON Text:\n", raw_text)
+            print("\nCleaned JSON Text:\n", clean_text)
 
-            # Now parse the cleaned JSON text
-            event_data = json.loads(clean_text)
-            # print("\nParsed Event Data:\n", json.dumps(event_data, indent=4))
-            # Ensure required fields exist
+            try:
+                event_data = json.loads(clean_text)
+            except json.JSONDecodeError as e:
+                print("JSON parsing error:", e)
+                print("Input causing error:", repr(clean_text))
 
             event_list = []
             # Create Event object by parsing Json fields
