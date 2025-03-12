@@ -111,9 +111,9 @@ class GeminiParser:
 
                         request: Slug Ai Meeting every tuesday thursday at 5pm, and monday meeting every week 7-9pm from 03/03-05/10 with bob@example.com at the red room
                         result:
-                        {
+                        {{
                             "events": [
-                                {
+                                {{
                                     "title": "Slug Ai Meeting",
                                     "is_all_day": false,
                                     "start_time": "20250318T170000",
@@ -130,8 +130,8 @@ class GeminiParser:
                                             ],
                                     "recurrence_count": null,
                                     "recurrence_end_date": null
-                                },
-                                {
+                                }},
+                                {{
                                     "title": "Monday Meeting",
                                     "is_all_day": false,
                                     "start_time": "20250303T190000",
@@ -149,9 +149,9 @@ class GeminiParser:
                                     ],
                                     "recurrence_count": null,
                                     "recurrence_end_date": "20250510"
-                                },
+                                }},
                             ]
-                        }
+                        }}
                         """
             print("\nsending request to Gemini API: ", text)
             print("Time Info: ", time_info)

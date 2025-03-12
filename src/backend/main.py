@@ -63,7 +63,10 @@ async def convert(
     for event in event_list:
         print("event:", event)
         if event is not None:
-            event.set_gcal_link()
-            event.set_outlook_link()
-            event.set_ical_string()
+            try:
+                event.set_gcal_link()
+                event.set_outlook_link()
+                event.set_ical_string()
+            except Exception as e:
+                print("ERROR: could not generate links:", e, event)
     return event_list
