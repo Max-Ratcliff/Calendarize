@@ -5,7 +5,7 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://calendarize.ratcliff.cc)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Calendarize is an AI-powered tool designed to generate calendar events from images or text. Utilizing the OpenAI API, Calendarize extracts relevant event details and creates calendar events that are compatible with most calendar applications.
+Calendarize is an Gemini/OpenAI powered tool designed to generate calendar events from images or text. Utilizing the OpenAI API, Calendarize extracts relevant event details and creates calendar events that are compatible with most calendar applications.
 
 ---
 
