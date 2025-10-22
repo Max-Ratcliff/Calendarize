@@ -1,5 +1,7 @@
 # Secrets and Configuration
 .env
+firebase_servicekey.json
+
 
 # Python
 __pycache__/

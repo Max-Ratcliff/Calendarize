@@ -18,68 +18,14 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-<<<<<<< HEAD
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("google_calendar_api")
-
-# Environment Configuration
-ENV = os.getenv("ENV", "development")
-API_HOST = os.getenv("API_HOST", "0.0.0.0")
-API_PORT = int(os.getenv("API_PORT", "8004"))
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-CALLBACK_URL = os.getenv("CALLBACK_URL", "http://localhost:8004/callback")
-TIMEZONE = os.getenv("TIMEZONE", "America/Los_Angeles")
-DEBUG = ENV == "development"
-
-# Constants
-SCOPES = ['https://www.googleapis.com/auth/calendar.events']
-CLIENT_SECRET_PATH = os.path.join(os.path.dirname(__file__), 'client_secret.json')
-
-# Request/Response Models
-=======
-
->>>>>>> 0ebfbf5d6e11135fda5b861fc37ee322a13c5e86
 class EventRequest(BaseModel):
     title: str
     description: str
     start_time: str
     end_time: str
 
-<<<<<<< HEAD
-    @validator('start_time', 'end_time')
-    def validate_datetime(cls, v):
-        try:
-            datetime.fromisoformat(v)
-            return v
-        except ValueError:
-            raise ValueError('Invalid datetime format. Expected ISO 8601 format (YYYY-MM-DDTHH:MM:SS)')
-
-class EventResponse(BaseModel):
-    message: str
-    eventId: str
-    htmlLink: Optional[str] = None
-
-class AuthStatus(BaseModel):
-    status: str
-    email: Optional[str] = None
-    expires: Optional[str] = None
-
-# Initialize FastAPI app
-app = FastAPI(
-    title="Google Calendar Integration API",
-    description="API for integrating with Google Calendar",
-    version="1.0.0",
-    docs_url="/docs" if DEBUG else None,
-    redoc_url="/redoc" if DEBUG else None,
-)
-=======
 
 app = FastAPI()
->>>>>>> 0ebfbf5d6e11135fda5b861fc37ee322a13c5e86
 
 
 # Add CORS middleware
@@ -91,31 +37,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-<<<<<<< HEAD
-# Helper Functions
-def get_credentials(request: Request, response: Optional[Response] = None) -> Optional[Credentials]:
-    """
-    Get and validate Google OAuth credentials from cookies
-    
-    Args:
-        request: The FastAPI request object
-        response: Optional response object for setting cookies
-        
-    Returns:
-        Valid Google OAuth credentials or None
-    """
-    try:
-        token_json = request.cookies.get('google_auth_token')
-        if not token_json:
-            return None
-        
-        creds = Credentials.from_authorized_user_info(json.loads(token_json), SCOPES)
-        
-        # Check if credentials need refreshing
-        if not creds.valid:
-            if creds.expired and creds.refresh_token:
-                logger.info("Refreshing expired token")
-=======
 # Define the scopes (permissions) your app needs
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
@@ -137,7 +58,6 @@ def authenticate_google(request: Request, response: Response):
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 print("Refreshing expired token")
->>>>>>> 0ebfbf5d6e11135fda5b861fc37ee322a13c5e86
                 creds.refresh(GoogleRequest())
                 # Update cookie if we have a response object
                 if response:
@@ -149,10 +69,6 @@ def authenticate_google(request: Request, response: Response):
                         samesite='lax',
                         max_age=3600
                     )
-<<<<<<< HEAD
-                return creds
-            return None
-=======
 
                 print("Starting OAuth flow")
                 flow = InstalledAppFlow.from_client_secrets_file(
@@ -170,172 +86,11 @@ def authenticate_google(request: Request, response: Response):
                 max_age=3600
             )
             print("Set new token in cookies")
->>>>>>> 0ebfbf5d6e11135fda5b861fc37ee322a13c5e86
         return creds
     except Exception as e:
         logger.error(f"Error getting credentials: {str(e)}")
         return None
 
-<<<<<<< HEAD
-def build_calendar_service(credentials: Credentials):
-    """
-    Build the Google Calendar API service
-    
-    Args:
-        credentials: Valid Google OAuth credentials
-        
-    Returns:
-        Google Calendar API service
-    """
-    return build('calendar', 'v3', credentials=credentials)
-
-def format_event(event_request: EventRequest) -> Dict[str, Any]:
-    """
-    Format the event data for the Google Calendar API
-    
-    Args:
-        event_request: The event data from the client
-        
-    Returns:
-        Formatted event data for Google Calendar API
-    """
-    # Parse dates
-    start_time = datetime.fromisoformat(event_request.start_time)
-    end_time = datetime.fromisoformat(event_request.end_time)
-    
-    # If start and end time are the same, add 1 hour duration
-    if start_time == end_time:
-        end_time = start_time + timedelta(hours=1)
-    
-    return {
-        'summary': event_request.title,
-        'description': event_request.description,
-        'start': {
-            'dateTime': start_time.isoformat(),
-            'timeZone': TIMEZONE,
-        },
-        'end': {
-            'dateTime': end_time.isoformat(),
-            'timeZone': TIMEZONE,
-        },
-    }
-
-def create_success_page() -> str:
-    """Generate HTML for successful authentication"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Authentication Successful</title>
-        <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
-            .success { color: green; font-size: 24px; margin-bottom: 20px; }
-            .message { margin-bottom: 30px; }
-            .button { background-color: #4CAF50; border: none; color: white; padding: 15px 32px; 
-                     text-align: center; text-decoration: none; display: inline-block; 
-                     font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px; }
-        </style>
-        <script>
-            window.onload = function() {
-                // Notify the opener window that auth is complete
-                if (window.opener && !window.opener.closed) {
-                    window.opener.postMessage('google-auth-complete', '*');
-                }
-                
-                // Close this window after a short delay
-                setTimeout(function() {
-                    window.close();
-                }, 3000);
-            };
-        </script>
-    </head>
-    <body>
-        <div class="success">✓ Authentication Successful!</div>
-        <div class="message">You can now close this window and return to the app.</div>
-        <div>This window will close automatically in 3 seconds.</div>
-        <button class="button" onclick="window.close()">Close Window</button>
-    </body>
-    </html>
-    """
-
-def create_error_page(error: str) -> str:
-    """Generate HTML for authentication error"""
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Authentication Error</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }}
-            .error {{ color: red; font-size: 24px; margin-bottom: 20px; }}
-            .message {{ margin-bottom: 30px; }}
-            .button {{ background-color: #f44336; border: none; color: white; padding: 15px 32px; 
-                     text-align: center; text-decoration: none; display: inline-block; 
-                     font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px; }}
-        </style>
-        <script>
-            window.onload = function() {
-                // Notify the opener window that auth failed
-                if (window.opener && !window.opener.closed) {
-                    window.opener.postMessage('google-auth-failed', '*');
-                }
-            };
-        </script>
-    </head>
-    <body>
-        <div class="error">✗ Authentication Error</div>
-        <div class="message">Error: {error}</div>
-        <button class="button" onclick="window.close()">Close Window</button>
-    </body>
-    </html>
-    """
-
-# Dependency for requiring authentication
-async def require_auth(request: Request, response: Response) -> Credentials:
-    """
-    Dependency to require valid authentication
-    
-    Args:
-        request: The FastAPI request object
-        response: The FastAPI response object
-        
-    Returns:
-        Valid Google OAuth credentials
-        
-    Raises:
-        HTTPException: If user is not authenticated
-    """
-    creds = get_credentials(request, response)
-    if not creds:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
-        )
-    return creds
-
-# API Endpoints
-@app.post('/add-event', response_model=EventResponse)
-async def add_event(
-    event: EventRequest, 
-    request: Request, 
-    response: Response,
-    credentials: Credentials = Depends(require_auth)
-):
-    """Add an event to Google Calendar"""
-    try:
-        logger.info(f"Adding event: {event.title}")
-        
-        # Format the event
-        calendar_event = format_event(event)
-        
-        # Get calendar service
-        service = build_calendar_service(credentials)
-        
-        # Create the event
-        created_event = service.events().insert(calendarId='primary', body=calendar_event).execute()
-        logger.info(f"Event created with ID: {created_event.get('id')}")
-        
-=======
 
 @app.post('/add-event')
 async def add_event(request: Request, response: Response, event: EventRequest):
@@ -370,7 +125,6 @@ async def add_event(request: Request, response: Response, event: EventRequest):
         created_event = service.events().insert(calendarId='primary', body=calendar_event).execute()
         print(f"Event created successfully with ID: {created_event.get('id')}")
 
->>>>>>> 0ebfbf5d6e11135fda5b861fc37ee322a13c5e86
         return {
             "message": f"Event created: {created_event.get('htmlLink')}",
             "eventId": created_event.get('id'),
@@ -393,18 +147,9 @@ async def delete_event(
 ):
     """Delete an event from Google Calendar"""
     try:
-<<<<<<< HEAD
-        logger.info(f"Deleting event: {event_id}")
-        
-        # Get calendar service
-        service = build_calendar_service(credentials)
-        
-        # Delete the event
-=======
         creds = authenticate_google(request, response)
         service = build('calendar', 'v3', credentials=creds)
 
->>>>>>> 0ebfbf5d6e11135fda5b861fc37ee322a13c5e86
         service.events().delete(calendarId='primary', eventId=event_id).execute()
         logger.info(f"Event {event_id} deleted successfully")
         
@@ -458,37 +203,6 @@ async def login(request: Request, response: Response):
 async def callback(request: Request, response: Response):
     """Handle the OAuth callback from Google"""
     try:
-<<<<<<< HEAD
-        # Get the authorization code
-        code = request.query_params.get('code')
-        if not code:
-            logger.error("Missing authorization code in callback")
-            raise ValueError("Missing authorization code")
-        
-        logger.info("Received authorization code")
-        
-        # Create OAuth flow
-        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
-        flow.redirect_uri = CALLBACK_URL
-        
-        # Exchange code for credentials
-        flow.fetch_token(code=code)
-        creds = flow.credentials
-        logger.info("Successfully exchanged code for credentials")
-        
-        # Store credentials in cookie
-        response.set_cookie(
-            key='google_auth_token',
-            value=creds.to_json(),
-            httponly=True,
-            secure=ENV != "development",  # Use secure cookies in production
-            samesite='lax',
-            max_age=3600  # 1 hour
-        )
-        
-        # Return success page
-        return HTMLResponse(content=create_success_page())
-=======
         authenticate_google(request, response)
         html_content = """
         <!DOCTYPE html>
@@ -521,7 +235,6 @@ async def callback(request: Request, response: Response):
         """
         from fastapi.responses import HTMLResponse
         return HTMLResponse(content=html_content)
->>>>>>> 0ebfbf5d6e11135fda5b861fc37ee322a13c5e86
     except Exception as e:
         logger.error(f"Callback error: {str(e)}")
         return HTMLResponse(
