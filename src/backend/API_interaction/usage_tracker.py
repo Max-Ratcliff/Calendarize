@@ -19,10 +19,12 @@ SERVICE_ACCOUNT_KEY_PATH = os.path.join(
 )
 
 # The daily request limit for the Gemini Flash free tier.
-FREE_TIER_LIMIT_PER_DAY = 990000
+import firebase_admin
+from firebase_admin import credentials, firestore
+from utils.logger import logger
 
-# --- Firebase Initialization ---
-
+# --- Configuration ---
+...
 # Initialize the Firebase Admin SDK.
 try:
     # Check if the app is already initialized to prevent errors.
@@ -31,17 +33,17 @@ try:
             # Local development with service account key
             cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
             firebase_admin.initialize_app(cred)
-            print("Initialized Firebase with local service account key.")
+            logger.info("Initialized Firebase with local service account key.")
         else:
             # Cloud Run or local development with Application Default Credentials
             firebase_admin.initialize_app()
-            print("Initialized Firebase with Application Default Credentials.")
+            logger.info("Initialized Firebase with Application Default Credentials.")
 
     db = firestore.client()
     # Reference to the specific document in Firestore that tracks usage.
     usage_doc_ref = db.collection("Usage").document("gemini_usage")
 except Exception as e:
-    print(f"ERROR: Could not initialize Firebase. {e}")
+    logger.exception("Could not initialize Firebase")
     # Provide a dummy client in case of failure so the app doesn't crash on import.
     db = None
     usage_doc_ref = None
@@ -86,7 +88,7 @@ def get_usage_snapshot():
         return data
 
     except Exception as e:
-        print(f"Error accessing Firestore: {e}")
+        logger.exception("Error accessing Firestore")
         # Return a structure that will block further API calls to be safe.
         return {
             "calls": FREE_TIER_LIMIT_PER_DAY + 1,
@@ -99,15 +101,16 @@ def increment_usage_count():
     Increments the API usage count in Firestore using an atomic transaction.
     """
     if not usage_doc_ref:
-        print("ERROR: Cannot increment usage count, Firebase not initialized.")
+        logger.error("Cannot increment usage count, Firebase not initialized.")
         return
 
     try:
         # Use Firestore's atomic increment operation.
         # This is safer than read-then-write for counters.
         usage_doc_ref.update({"calls": firestore.Increment(1)})
+        logger.debug("Successfully incremented usage count in Firestore.")
     except Exception as e:
-        print(f"Error incrementing usage count in Firestore: {e}")
+        logger.exception("Error incrementing usage count in Firestore")
 
 
 def check_usage_limit():

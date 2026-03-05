@@ -44,7 +44,7 @@ class Event(BaseModel):
 
     def set_ical_string(self):
         cal = Calendar()
-        cal.add("prodid", "-//Calendarize//calendarize.tech//EN")
+        cal.add("prodid", "-//Calendarize//calendarize.ratcliff.cc//EN")
         cal.add("version", "2.0")
 
         # Create the VTIMEZONE component for America/Los_Angeles

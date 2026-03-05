@@ -47,7 +47,6 @@ yarn-error.log*
 *.swo
 .DS_Store
 Thumbs.db
-feature_plans/
 .gemini-clipboard
 
 # App Specific

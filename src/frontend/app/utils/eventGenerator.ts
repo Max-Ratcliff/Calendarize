@@ -1,4 +1,5 @@
 import { CalendarEvent } from "@/app/types/CalendarEvent";
+import { logger } from "@/app/lib/logger";
 
 // Use environment variable with fallback
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.calendarize.ratcliff.cc';
@@ -13,10 +14,8 @@ export const generateEvent = async (
 		const local_tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 		const local_time = new Date().toLocaleString("sv-SE", { timeZone: local_tz }).replace(" ", "T") + "Z";
 
-		console.log("prompt:", text);
-		console.log("file:", img);
-		console.log("local time:", local_time, local_tz);
-		console.log("Sending request to backend:", API_EVENT);
+		logger.info("Generating event request", { textSnippet: text.slice(0, 50), hasImage: !!img });
+		logger.debug("Prompt data", { text, local_time, local_tz });
 
 		const formData = new FormData();
 
@@ -27,8 +26,11 @@ export const generateEvent = async (
 
 		// Only append the file if it was provided
 		if (img) {
-		formData.append("file", img);
+			logger.info(`Appending image file: ${img.name} (${img.size} bytes)`);
+			formData.append("file", img);
 		}
+
+		logger.debug(`Sending request to backend: ${API_EVENT}`);
 
 		const response = await fetch(API_EVENT, {
 		method: "POST",
@@ -36,32 +38,18 @@ export const generateEvent = async (
 		});
 
 		if (!response.ok) {
-			console.error("Error generating event:", response.statusText);
-			return [
-				{
-					title: "Sample Event",
-					time_zone: "America/Los_Angeles",
-					start_time: "",
-					end_time: "",
-					description: "Something went wrong while generating this event :(",
-					location: "",
-					attendees: [],
-					recurrence_type: "",
-					recurrence_days: [],
-					recurrence_count: 0,
-					recurrence_end: "",
-					gcal_link: "",
-					outlook_link: "",
-					ics_string: "",
-				},
-			];
+			const errorData = await response.json().catch(() => ({}));
+			const errorMessage = errorData.detail || `Server error: ${response.status} ${response.statusText}`;
+			logger.error(`Backend error while generating event: ${errorMessage}`);
+			throw new Error(errorMessage);
 		}
 
 		const data = await response.json();
 
 		// Ensure response is a list of events
 		if (!Array.isArray(data)) {
-		throw new Error("Unexpected response format: Expected an array of events");
+			logger.error("Unexpected response format from backend", { data });
+			throw new Error("Invalid response format from server.");
 		}
 
 		// Map response events to CalendarEvent format
@@ -82,28 +70,11 @@ export const generateEvent = async (
 		ics_string: event.ics || "",
 		}));
 
-		console.log("Generated events:", events);
+		logger.info(`Successfully generated ${events.length} events`);
+		logger.debug("Events data", { events });
 		return events;
 	} catch (error) {
-		console.error("Error generating event:", error);
-		// Return a sample event if the API call fails
-		return [
-		{
-			title: "Sample Event",
-			time_zone: "America/Los_Angeles",
-			start_time: "",
-			end_time: "",
-			description: "Something went wrong while generating this event :(",
-			location: "",
-			attendees: [],
-			recurrence_type: "",
-			recurrence_days: [],
-			recurrence_count: 0,
-			recurrence_end: "",
-			gcal_link: "",
-			outlook_link: "",
-			ics_string: "",
-		},
-		];
+		logger.error("Failed to generate event", error);
+		throw error;
 	}
 };

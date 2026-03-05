@@ -4,7 +4,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Calendarize is an Gemini/OpenAI powered tool designed to generate calendar events from images or text. Utilizing the OpenAI API, Calendarize extracts relevant event details and creates calendar events that are compatible with most calendar applications.
 **Calendarize** is an AI-powered tool that transforms images and text into calendar events. By leveraging the Gemini 2.5 Flash Lite model, it extracts event details (title, time, location, attendees, recurrence) and generates ready-to-use invite links for Google Calendar, Outlook, and iCal.
 
 ---
@@ -23,7 +22,7 @@ Calendarize is an Gemini/OpenAI powered tool designed to generate calendar event
 ### Prerequisites
 - Python 3.10+
 - Node.js 18+
-- API Keys: [Google AI Studio](https://aistudio.google.com/) (Gemini) and/or OpenAI.
+- API Keys: [Google AI Studio](https://aistudio.google.com/) (Gemini).
 
 ### Quick Setup
 Run the automated setup script to install dependencies and configure local environment variables:

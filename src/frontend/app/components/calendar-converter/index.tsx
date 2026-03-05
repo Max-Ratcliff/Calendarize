@@ -10,11 +10,13 @@ import React, {
   KeyboardEvent,
 } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import { GeneratedEventDisplay } from "./generated-event";
 import { CalendarEvent } from "@/app/types/CalendarEvent";
 import { generateEvent } from "@/app/utils/eventGenerator";
+import { pushAllToGoogleCalendar } from "@/app/utils/calendarExport";
 import mammoth from "mammoth";
 import { Analytics } from '@/app/lib/analytics'
 
@@ -136,8 +138,14 @@ export function CalendarConverter() {
       );
 
       setState(prev => ({ ...prev, events }));
+      if (events.length === 0) {
+        toast.info("No events found in the text/image.");
+      } else {
+        toast.success(`Generated ${events.length} event${events.length > 1 ? 's' : ''}!`);
+      }
     } catch (error) {
       handleError(error as Error, 'calendar_conversion');
+      toast.error(error instanceof Error ? error.message : "Failed to generate events. Please try again.");
     } finally {
       setState(prev => ({
         ...prev,
@@ -479,6 +487,18 @@ export function CalendarConverter() {
           w-full
           px-4
           md:px-0">
+          
+          {state.events.length > 1 && (
+            <div className="flex justify-end mb-2">
+              <Button 
+                onClick={() => pushAllToGoogleCalendar(state.events)}
+                className="bg-[#218F98] hover:bg-[#1a747b] text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105"
+              >
+                Push All to Google Calendar →
+              </Button>
+            </div>
+          )}
+
           {state.events.map((event, index) => (
             <Card key={index} className="w-full 
               md:border-[#218F98] 
@@ -495,11 +515,29 @@ export function CalendarConverter() {
           ))}
         </div>
       )}
+
+      <Footer />
     </Container>
   );
 }
 
 /* ----------------- LOCAL SUB-COMPONENTS ----------------- */
+
+// Footer component
+function Footer() {
+  return (
+    <footer className="mt-12 mb-8 text-center space-y-4">
+      <div className="flex justify-center gap-6 text-sm text-[#6B909F] font-medium uppercase tracking-widest">
+        <a href="/privacy" className="hover:text-[#218F98] transition-colors">Privacy Policy</a>
+        <a href="/terms" className="hover:text-[#218F98] transition-colors">Terms of Service</a>
+      </div>
+      <p className="text-xs text-[#6B909F]/60">
+        © 2026 Calendarize. Built with Gemini AI.
+      </p>
+    </footer>
+  );
+}
+
 
 // Loading spinner component
 function LoadingSpinner() {

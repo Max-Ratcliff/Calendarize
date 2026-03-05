@@ -1,6 +1,7 @@
 from datetime import datetime
 from dateutil.parser import parse
 from icalendar import vRecur  # Calendar, Event as IcalEvent
+from utils.logger import logger
 
 # from event_generation.event.event import Event
 
@@ -9,7 +10,10 @@ def parse_datetime(text: str) -> datetime:
     try:
         return parse(text)
     except ValueError as ve:
-        print(f"Error parsing datetime: {ve}")
+        logger.error(f"Error parsing datetime '{text}': {ve}")
+        return None
+    except Exception as e:
+        logger.exception(f"Unexpected error parsing datetime '{text}'")
         return None
 
 

@@ -2,22 +2,10 @@
 
 import posthog from 'posthog-js'
 
-// Initialize PostHog only on the client side
-const initPostHog = () => {
-  if (typeof window !== 'undefined' && !posthog.__loaded) {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
-      loaded: (posthog) => {
-        if (process.env.NODE_ENV === 'development') posthog.debug()
-      }
-    })
-  }
-}
-
 export const Analytics = {
   // Calendar events
   trackCalendarConversion: (inputType: 'text' | 'image' | 'docx', eventCount: number) => {
-    initPostHog()
+    if (!posthog.__loaded) return
     try {
       posthog.capture('calendar_conversion', {
         input_type: inputType,
@@ -30,7 +18,7 @@ export const Analytics = {
   },
 
   trackCalendarExport: (platform: 'google' | 'outlook' | 'apple', success: boolean) => {
-    initPostHog()
+    if (!posthog.__loaded) return
     try {
       posthog.capture('calendar_export', {
         platform,
@@ -44,7 +32,7 @@ export const Analytics = {
 
   // User interactions
   trackFileUpload: (fileType: string, fileSize: number) => {
-    initPostHog()
+    if (!posthog.__loaded) return
     try {
       posthog.capture('file_upload', {
         file_type: fileType,
@@ -57,7 +45,7 @@ export const Analytics = {
   },
 
   trackTextInput: (text: string) => {
-    initPostHog()
+    if (!posthog.__loaded) return
     try {
       posthog.capture('typed_text', {
         text: text,
@@ -71,7 +59,7 @@ export const Analytics = {
 
   // Error tracking
   trackError: (error: Error, context: string) => {
-    initPostHog()
+    if (!posthog.__loaded) return
     try {
       posthog.capture('error_occurred', {
         error_message: error.message,
@@ -87,7 +75,7 @@ export const Analytics = {
 
   // Page views
   trackPageView: (url: string) => {
-    initPostHog()
+    if (!posthog.__loaded) return
     try {
       posthog.capture('$pageview', {
         $current_url: url,
@@ -97,4 +85,5 @@ export const Analytics = {
       console.error('PostHog tracking error:', e)
     }
   }
-} 
+}
+ 

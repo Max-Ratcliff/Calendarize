@@ -11,14 +11,16 @@
 ## Priority 1: Gemini API & Model Update
 - [x] **Update Model:** Migrated to `gemini-2.5-flash-lite`.
 - [ ] **Secret Management (Production Hardening):**
-    - [ ] Remove `GEMINI_API_KEY` and `OPENAI_API_KEY` from `.env` files.
+    - [ ] Remove `GEMINI_API_KEY` from `.env` files.
     - [ ] Configure Cloud Run to pull these from **Google Cloud Secret Manager**.
     - [ ] Update `readenv.py` to check for environment variables provided by Secret Manager first.
 
 ## Priority 2: Repository Cleanup (Pre-Push)
 - [x] **Cleanup Redundant Files:** Removed duplicate `.gitignore`, `tailwind.config.js`, and `postcss.config.js` from frontend.
 - [x] **Secure Git Index:** Removed `client_secret.json` from tracked files.
-- [ ] **Standardize Configuration:**
+- [x] **Logging Improvements:** (Plan 13) - Implemented centralized structured logging for Backend (FastAPI) and Frontend (Next.js) with PostHog integration and GCP-friendly JSON formatting.
+- [x] **Consolidate Google Calendar Logic:** Scrapped the stray `gc_event_adder.py` and converted it into a modular backend utility `src/backend/utils/google_calendar.py`.
+- [x] **Integrate Direct "Push to Calendar" Button:** (Plan 3) - Added OAuth routes to `main.py`, backend utility logic, and 'Push to Google' button in the frontend.
     - [ ] Ensure `src/backend/event_generation/config/` only contains `.example` files for secrets.
     - [ ] Remove any leftover Digital Ocean specific configuration (if any).
 - [ ] **Final Lint/Formatting:** Run a final pass to ensure code consistency.

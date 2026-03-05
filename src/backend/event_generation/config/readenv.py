@@ -16,17 +16,6 @@ def load_environment():
     return os.environ
 
 
-def get_openai_key():
-    load_environment()
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError(
-            "API key not found. Make sure you have a .env file with "
-            "OPENAI_API_KEY set."
-        )
-    return api_key
-
-
 def get_gemini_key():
     load_environment()
     api_key = os.getenv("GEMINI_API_KEY")

@@ -1,7 +1,7 @@
 import React, { JSX } from "react"
 import { CalendarEvent } from "@/app/types/CalendarEvent"
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card"
-import { exportToGoogleCalendar, exportToICal, exportToOutlook } from "@/app/utils/calendarExport"
+import { exportToGoogleCalendar, exportToICal, exportToOutlook, pushToGoogleCalendar } from "@/app/utils/calendarExport"
 import { Button } from "@/app/components/ui/button"
 import { format, parseISO, isValid } from "date-fns"
 
@@ -259,66 +259,107 @@ const EventDetails: React.FC<{
 EventDetails.displayName = 'EventDetails';
 
 // Export Sections
-const MobileExportSection: React.FC<{ event: CalendarEvent }> = React.memo(({ event }) => (
-  <div className="space-y-2 w-full">
-    <p className="text-[#6B909F] text-sm font-medium text-telegraf">
-      Export to:
-    </p>
-    <div className="flex flex-col gap-2 w-full">
-      <ExportButton 
-        label="Google" 
-        onClick={() => exportToGoogleCalendar(event)}
-        className="text-[11px] xs:text-sm sm:text-base md:text-lg lg:text-xl
-          py-2 xs:py-2.5 sm:py-3
-          w-full"
-      />
-      <ExportButton 
-        label="Outlook" 
-        onClick={() => exportToOutlook(event)}
-        className="text-[11px] xs:text-sm sm:text-base md:text-lg lg:text-xl
-          py-2 xs:py-2.5 sm:py-3
-          w-full"
-      />
-      <ExportButton 
-        label="Apple (ICS)"
-        onClick={() => exportToICal(event)}
-        className="text-[11px] xs:text-sm sm:text-base md:text-lg lg:text-xl
-          py-2 xs:py-2.5 sm:py-3
-          w-full"
-      />
+const MobileExportSection: React.FC<{ event: CalendarEvent }> = React.memo(({ event }) => {
+  const [isPushed, setIsPushed] = React.useState(false);
+
+  const handlePush = async () => {
+    try {
+      await pushToGoogleCalendar(event, true);
+      setIsPushed(true);
+    } catch (e) {
+      // toast already handled in pushToGoogleCalendar
+    }
+  };
+
+  return (
+    <div className="space-y-2 w-full">
+      <p className="text-[#6B909F] text-sm font-medium text-telegraf">
+        Export to:
+      </p>
+      <div className="flex flex-col gap-2 w-full">
+        <ExportButton 
+          label={isPushed ? "Added ✓" : "Push to Google"} 
+          onClick={handlePush}
+          className={isPushed ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+        />
+        {isPushed && (
+          <a 
+            href="https://calendar.google.com" 
+            target="_blank" 
+            className="text-center text-xs text-[#218F98] underline font-medium py-1"
+          >
+            Review in Google Calendar
+          </a>
+        )}
+        <ExportButton 
+          label="Google Link" 
+          onClick={() => exportToGoogleCalendar(event)}
+        />
+        <ExportButton 
+          label="Outlook" 
+          onClick={() => exportToOutlook(event)}
+        />
+        <ExportButton 
+          label="Apple (ICS)"
+          onClick={() => exportToICal(event)}
+        />
+      </div>
     </div>
-  </div>
-));
+  );
+});
 MobileExportSection.displayName = 'MobileExportSection';
 
 // Desktop Export Section
-const DesktopExportSection: React.FC<{ event: CalendarEvent }> = React.memo(({ event }) => (
-  <div className="space-y-2 w-full">
-    <p className="text-[#6B909F] text-sm font-medium text-telegraf">
-      Export to:
-    </p>
-    <div className="grid grid-cols-3 gap-1 xs:gap-2 w-full">
-      <ExportButton 
-        label="Google" 
-        onClick={() => exportToGoogleCalendar(event)}
-        className="text-[11px] xs:text-sm sm:text-base md:text-lg lg:text-xl
-          py-2 xs:py-2.5 sm:py-3"
-      />
-      <ExportButton 
-        label="Outlook" 
-        onClick={() => exportToOutlook(event)}
-        className="text-[11px] xs:text-sm sm:text-base md:text-lg lg:text-xl
-          py-2 xs:py-2.5 sm:py-3"
-      />
-      <ExportButton 
-        label="Apple (ICS)"
-        onClick={() => exportToICal(event)}
-        className="text-[11px] xs:text-sm sm:text-base md:text-lg lg:text-xl
-          py-2 xs:py-2.5 sm:py-3"
-      />
+const DesktopExportSection: React.FC<{ event: CalendarEvent }> = React.memo(({ event }) => {
+  const [isPushed, setIsPushed] = React.useState(false);
+
+  const handlePush = async () => {
+    try {
+      await pushToGoogleCalendar(event, true);
+      setIsPushed(true);
+    } catch (e) {
+      // toast already handled
+    }
+  };
+
+  return (
+    <div className="space-y-2 w-full">
+      <div className="flex justify-between items-center">
+        <p className="text-[#6B909F] text-sm font-medium text-telegraf">
+          Export to:
+        </p>
+        {isPushed && (
+          <a 
+            href="https://calendar.google.com" 
+            target="_blank" 
+            className="text-xs text-[#218F98] underline font-medium hover:text-[#1a747b]"
+          >
+            Review in Google Calendar
+          </a>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-2 w-full">
+        <ExportButton 
+          label={isPushed ? "Added ✓" : "Push to Google"} 
+          onClick={handlePush}
+          className={isPushed ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+        />
+        <ExportButton 
+          label="Google Link" 
+          onClick={() => exportToGoogleCalendar(event)}
+        />
+        <ExportButton 
+          label="Outlook" 
+          onClick={() => exportToOutlook(event)}
+        />
+        <ExportButton 
+          label="Apple (ICS)"
+          onClick={() => exportToICal(event)}
+        />
+      </div>
     </div>
-  </div>
-));
+  );
+});
 DesktopExportSection.displayName = 'DesktopExportSection';
 
 // Icons (kept as is since they're already optimized)

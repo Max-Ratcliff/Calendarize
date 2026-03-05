@@ -34,8 +34,9 @@ if [ -f ".env" ]; then
 else
     echo ".env file does not exist."
     echo "writing .env file"
-    read -p "Please enter your API key: " API_KEY
-    echo "OPENAI_API_KEY=\"$API_KEY\"" > .env
+    read -p "Please enter your Gemini API key: " API_KEY
+    echo "GEMINI_API_KEY=\"$API_KEY\"" > .env
+    echo "MODEL=\"gemini\"" >> .env
 fi
 
 
