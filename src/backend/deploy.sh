@@ -18,11 +18,11 @@ gcloud builds submit --tag $IMAGE_PATH .
 
 # 2. Deploy to Cloud Run
 echo "🌍 Deploying to Cloud Run..."
-# We mount GOOGLE_CLIENT_SECRET as a file at the path the code expects: /app/utils/client_secret.json
+# We mount secrets as files at the exact paths the code expects
 gcloud run deploy $SERVICE_NAME \
   --image $IMAGE_PATH \
   --region $REGION \
-  --set-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest,utils/client_secret.json=GOOGLE_CLIENT_SECRET:latest" \
+  --set-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest,/app/utils/client_secret.json=GOOGLE_CLIENT_SECRET:latest,/app/event_generation/config/firebase_servicekey.json=FIREBASE_SERVICE_KEY:latest" \
   --set-env-vars="ENV=production,FRONTEND_URL=$FRONTEND_URL,CALLBACK_URL=$CALLBACK_URL" \
   --allow-unauthenticated
 

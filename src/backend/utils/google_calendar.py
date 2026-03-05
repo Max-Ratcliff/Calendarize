@@ -11,7 +11,8 @@ from utils.logger import logger
 
 # Configuration
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
-CLIENT_SECRET_PATH = os.path.join(os.path.dirname(__file__), 'client_secret.json')
+# Use an absolute path that is consistent in the container
+CLIENT_SECRET_PATH = '/app/utils/client_secret.json'
 
 def get_flow(redirect_uri: str):
     """Creates a Google OAuth flow instance."""

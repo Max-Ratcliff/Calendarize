@@ -9,14 +9,7 @@ from firebase_admin import credentials, firestore
 # --- Configuration ---
 
 # Path to your Firebase service account key JSON file.
-# Assumes the key is in the 'config' directory relative to the 'event_generation' folder.
-SERVICE_ACCOUNT_KEY_PATH = os.path.join(
-    os.path.dirname(__file__),  # current directory (API_interaction)
-    "..",  # up to 'backend'
-    "event_generation",
-    "config",
-    "firebase_servicekey.json",
-)
+SERVICE_ACCOUNT_KEY_PATH = "/app/event_generation/config/firebase_servicekey.json"
 
 # The daily request limit for the Gemini Flash free tier.
 import firebase_admin
