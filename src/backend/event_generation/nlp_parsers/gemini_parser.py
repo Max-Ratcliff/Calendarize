@@ -242,8 +242,6 @@ class GeminiParser:
                 raise ValueError("No event data extracted from the text")
             print("\nCleaned JSON Text:\n", clean_text)
 
-            print("\nCleaned JSON Text:\n", clean_text)
-
             try:
                 event_data = json.loads(clean_text)
             except json.JSONDecodeError as e:

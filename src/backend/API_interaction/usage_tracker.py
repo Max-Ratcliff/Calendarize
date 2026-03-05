@@ -12,10 +12,10 @@ from firebase_admin import credentials, firestore
 # Assumes the key is in the 'config' directory relative to the 'event_generation' folder.
 SERVICE_ACCOUNT_KEY_PATH = os.path.join(
     os.path.dirname(__file__),  # current directory (API_interaction)
-    '..',                       # up to 'event_generation'
-    'event_generation',
-    'config',
-    'firebase_servicekey.json'
+    "..",  # up to 'backend'
+    "event_generation",
+    "config",
+    "firebase_servicekey.json",
 )
 
 # The daily request limit for the Gemini Flash free tier.
@@ -27,8 +27,6 @@ FREE_TIER_LIMIT_PER_DAY = 990000
 try:
     # Check if the app is already initialized to prevent errors.
     if not firebase_admin._apps:
-        cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
-        firebase_admin.initialize_app(cred)
         if os.path.exists(SERVICE_ACCOUNT_KEY_PATH):
             # Local development with service account key
             cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
@@ -38,12 +36,11 @@ try:
             # Cloud Run or local development with Application Default Credentials
             firebase_admin.initialize_app()
             print("Initialized Firebase with Application Default Credentials.")
-            
+
     db = firestore.client()
     # Reference to the specific document in Firestore that tracks usage.
-    usage_doc_ref = db.collection('Usage').document('gemini_usage')
+    usage_doc_ref = db.collection("Usage").document("gemini_usage")
 except Exception as e:
-    print(f"ERROR: Could not initialize Firebase. Make sure 'serviceAccountKey.json' is in the correct path. {e}")
     print(f"ERROR: Could not initialize Firebase. {e}")
     # Provide a dummy client in case of failure so the app doesn't crash on import.
     db = None
@@ -59,21 +56,21 @@ def get_usage_snapshot():
     """
     if not usage_doc_ref:
         # Return a default structure if Firebase initialization failed.
-        return {'calls': FREE_TIER_LIMIT_PER_DAY + 1, 'last_reset': datetime.now(timezone.utc)}
+        return {
+            "calls": FREE_TIER_LIMIT_PER_DAY + 1,
+            "last_reset": datetime.now(timezone.utc),
+        }
 
     try:
         snapshot = usage_doc_ref.get()
         if not snapshot.exists:
             # If the document doesn't exist, create it.
-            initial_data = {
-                'calls': 0,
-                'last_reset': datetime.now(timezone.utc)
-            }
+            initial_data = {"calls": 0, "last_reset": datetime.now(timezone.utc)}
             usage_doc_ref.set(initial_data)
             return initial_data
 
         data = snapshot.to_dict()
-        last_reset_time = data.get('last_reset')
+        last_reset_time = data.get("last_reset")
 
         # Ensure last_reset_time is timezone-aware for correct comparison
         if last_reset_time.tzinfo is None:
@@ -82,10 +79,7 @@ def get_usage_snapshot():
         # Check if the last reset was on a previous day (in UTC)
         if last_reset_time.date() < datetime.now(timezone.utc).date():
             # Date has changed, reset the counter.
-            reset_data = {
-                'calls': 0,
-                'last_reset': datetime.now(timezone.utc)
-            }
+            reset_data = {"calls": 0, "last_reset": datetime.now(timezone.utc)}
             usage_doc_ref.set(reset_data)
             return reset_data
 
@@ -94,7 +88,10 @@ def get_usage_snapshot():
     except Exception as e:
         print(f"Error accessing Firestore: {e}")
         # Return a structure that will block further API calls to be safe.
-        return {'calls': FREE_TIER_LIMIT_PER_DAY + 1, 'last_reset': datetime.now(timezone.utc)}
+        return {
+            "calls": FREE_TIER_LIMIT_PER_DAY + 1,
+            "last_reset": datetime.now(timezone.utc),
+        }
 
 
 def increment_usage_count():
@@ -108,7 +105,7 @@ def increment_usage_count():
     try:
         # Use Firestore's atomic increment operation.
         # This is safer than read-then-write for counters.
-        usage_doc_ref.update({'calls': firestore.Increment(1)})
+        usage_doc_ref.update({"calls": firestore.Increment(1)})
     except Exception as e:
         print(f"Error incrementing usage count in Firestore: {e}")
 
@@ -118,7 +115,7 @@ def check_usage_limit():
     Checks if the current API usage is within the defined daily limit.
     """
     usage_data = get_usage_snapshot()
-    current_calls = usage_data.get('calls', 0)
+    current_calls = usage_data.get("calls", 0)
     return current_calls < FREE_TIER_LIMIT_PER_DAY
 
 
@@ -127,8 +124,4 @@ def get_current_usage():
     Returns the current usage count and the daily limit from Firestore.
     """
     usage_data = get_usage_snapshot()
-    return {
-        "count": usage_data.get('calls', 0),
-        "limit": FREE_TIER_LIMIT_PER_DAY
-    }
-
+    return {"count": usage_data.get("calls", 0), "limit": FREE_TIER_LIMIT_PER_DAY}
