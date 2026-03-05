@@ -1,8 +1,14 @@
 # Standard library imports
-from datetime import datetime
 import json
 import logging
 import traceback
+from datetime import datetime
+
+from event_generation.config.readenv import get_gemini_key
+from event_generation.event.date_parser import parse_datetime
+
+# Local application imports
+from event_generation.event.event import Event
 
 # Third-party imports
 # from dotenv import load_dotenv
@@ -10,12 +16,9 @@ import traceback
 from google import genai as Gemini
 from google.genai import types
 from pydantic import ValidationError
+
 # import tzlocal as tz
 
-# Local application imports
-from event_generation.event.event import Event
-from event_generation.event.date_parser import parse_datetime
-from event_generation.config.readenv import get_gemini_key
 
 logging.basicConfig(level=logging.ERROR)  # Configure logging
 
@@ -24,9 +27,11 @@ class GeminiParser:
     def __init__(self):
         # Initialize OpenAI client with API key
         self.client = Gemini.Client(api_key=get_gemini_key())
-        self.model = "gemini-2.0-flash-lite"
+        self.model = "gemini-2.5-flash-lite"
 
-    def parse(self, text: str, local_time: str, local_tz: str, image_path=None) -> Event:
+    def parse(
+        self, text: str, local_time: str, local_tz: str, image_path=None
+    ) -> Event:
         # send request to OpenAI API to extract event details into a JSON object
         try:
             # get current time up to the minute for relative date calculations
@@ -168,7 +173,7 @@ class GeminiParser:
                 # Create a Part object for the image
                 image_part = types.Part.from_bytes(
                     data=image_bytes,
-                    mime_type="image/jpeg"  # or image/png, etc., depending on your file
+                    mime_type="image/jpeg",  # or image/png, etc., depending on your file
                 )
 
                 print("\nwaiting on response from Gemini API...")
@@ -178,8 +183,8 @@ class GeminiParser:
                     model=self.model,
                     config=types.GenerateContentConfig(system_instruction=prompt),
                     contents=[
-                        text,       # your text prompt
-                        image_part  # the Part object for the image
+                        text,  # your text prompt
+                        image_part,  # the Part object for the image
                     ],
                 )
 
@@ -225,7 +230,7 @@ class GeminiParser:
 
             # Check if the text starts with "```json" and remove it
             if raw_text.startswith("```json"):
-                raw_text = raw_text[len("```json"):].strip()
+                raw_text = raw_text[len("```json") :].strip()
 
             # Check if the text ends with "```" and remove it
             if raw_text.endswith("```"):
@@ -235,6 +240,7 @@ class GeminiParser:
 
             if not clean_text:
                 raise ValueError("No event data extracted from the text")
+            print("\nCleaned JSON Text:\n", clean_text)
 
             print("\nCleaned JSON Text:\n", clean_text)
 
@@ -251,7 +257,9 @@ class GeminiParser:
                 print("\nEvent:\n", json.dumps(event, indent=4))
                 print()
                 if not event.get("title") or not event.get("start_time"):
-                    raise ValueError("Missing required fields: 'title' and/or 'start_time'")
+                    raise ValueError(
+                        "Missing required fields: 'title' and/or 'start_time'"
+                    )
                 new_event = Event(
                     title=event.get("title"),
                     is_all_day=event.get("is_all_day", False),

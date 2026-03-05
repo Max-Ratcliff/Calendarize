@@ -2,76 +2,105 @@
 
 ![icon](src/frontend/app/favicon.ico)
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://calendarize.ratcliff.cc)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Calendarize is an Gemini/OpenAI powered tool designed to generate calendar events from images or text. Utilizing the OpenAI API, Calendarize extracts relevant event details and creates calendar events that are compatible with most calendar applications.
+**Calendarize** is an AI-powered tool that transforms images and text into calendar events. By leveraging the Gemini 2.5 Flash Lite model, it extracts event details (title, time, location, attendees, recurrence) and generates ready-to-use invite links for Google Calendar, Outlook, and iCal.
 
 ---
 
-## Table of Contents
+## 🚀 Features
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Command-Line Interface](#command-line-interface)
-- [Future Improvements](#future-improvements)
+- **Multi-Modal Input:** Extract event data from raw text or image uploads (screenshots, flyers, etc.).
+- **Smart Parsing:** Automatic timezone detection and relative date handling (e.g., "next Tuesday").
+- **Universal Support:** One-click links for Google Calendar, Outlook Web, and standard `.ics` downloads.
+- **Cloud Native:** Built with FastAPI (Backend) and Next.js (Frontend), optimized for Google Cloud Run.
 
-## Installation
+---
 
-To install the necessary dependencies, run the following command in your terminal:
+## 🛠️ Local Installation
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- API Keys: [Google AI Studio](https://aistudio.google.com/) (Gemini) and/or OpenAI.
+
+### Quick Setup
+Run the automated setup script to install dependencies and configure local environment variables:
 
 ```bash
 bash setup.sh
 ```
 
-Alternatively, for the backend requirements, run:
+### Manual Backend Setup
+1. Navigate to `src/backend`.
+2. Install requirements: `pip install -r requirements.txt`.
+3. Create a `.env` in `src/backend/event_generation/config/`:
+   ```env
+   GEMINI_API_KEY="your_key_here"
+   MODEL="gemini"
+   ```
 
-```bash
-pip install -r ./src/backend/requirements.txt
-```
-
-## Usage
-
-After installation, start the application locally by running:
-
-```bash
-bash runlocal.sh
-```
-
-Once the application is running, open your web browser and navigate to:
-
-`http://localhost:3000/`
-
-This will allow you to interact with the event converter.
-
-## Command-Line Interface
-
-Calendarize also provides a CLI for generating calendar events. To test the CLI, navigate to the backend directory and run:
-
-```bash
-python -m event_generation.testing.test_to_cal_cli
-```
-
-### CLI Options
-
-- **Image Input**:
-  - Provide the path to an image file (e.g., `./src/backend/event_generation/testing/single_event.png`). In this mode, `image_parser.py` processes the image to extract text before invoking `text_parser.py`.
-
-- **Text Input**:
-  - Enter your event prompt directly. In this mode, `text_parser.py` is used to generate an `Event` object with all relevant details and links.
-
-To generate an ICS file, modify the `genIcal` flag in `test_to_cal_cli.py` to `true`.
-
-### Running the Application as a CLI
-
-Ensure all dependencies are installed before running the CLI. The CLI script outputs an `Event` object that includes all event details and calendar links, facilitating easy import into your preferred calendar application.
-
-## Future Improvements
-
-- Enable post-generation editing of events
-- Integrate additional calendar services
-- Enhance error handling and improve the user interface
+### Manual Frontend Setup
+1. Navigate to `src/frontend`.
+2. Install dependencies: `npm install`.
+3. Create `.env.local`: `NEXT_PUBLIC_API_URL=http://localhost:8000`.
 
 ---
 
-For further assistance or more detailed documentation, please consult the project documentation or contact the development team.
+## 💻 Usage
+
+Start both servers simultaneously:
+```bash
+bash runlocal.sh
+```
+The application will be available at `http://localhost:3000`.
+
+### Command-Line Interface (CLI)
+You can test the extraction engine directly from the terminal:
+```bash
+cd src/backend
+python -m event_generation.testing.test_to_cal_cli
+```
+
+---
+
+## ☁️ Deployment (Google Cloud Run)
+
+Calendarize is designed to run as a containerized service on Google Cloud.
+
+### 1. Backend Deployment
+The backend includes a `Dockerfile` and is compatible with Cloud Run.
+
+**Prerequisites:**
+- Google Cloud SDK (`gcloud`) installed.
+- A Google Cloud Project with Billing and Artifact Registry enabled.
+
+**Deploy Command:**
+```bash
+cd src/backend
+gcloud run deploy calendarize-backend \
+  --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars="MODEL=gemini" \
+  --set-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest"
+```
+
+*Note: It is recommended to use **Google Cloud Secret Manager** for API keys instead of plaintext environment variables.*
+
+### 2. Firestore Usage Tracking
+The backend automatically uses **Application Default Credentials (ADC)** to track API usage in Firestore. Ensure the Cloud Run service account has the `Cloud Datastore User` role.
+
+---
+
+## 📅 Roadmap
+- [ ] Post-generation event editing.
+- [ ] Direct Google Calendar API integration (skip the link).
+- [ ] Recurring event support (Plan 12).
+- [ ] Improved mobile UX.
+
+---
+
+Built with ❤️ by the Calendarize Team.

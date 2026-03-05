@@ -29,11 +29,22 @@ try:
     if not firebase_admin._apps:
         cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
         firebase_admin.initialize_app(cred)
+        if os.path.exists(SERVICE_ACCOUNT_KEY_PATH):
+            # Local development with service account key
+            cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
+            firebase_admin.initialize_app(cred)
+            print("Initialized Firebase with local service account key.")
+        else:
+            # Cloud Run or local development with Application Default Credentials
+            firebase_admin.initialize_app()
+            print("Initialized Firebase with Application Default Credentials.")
+            
     db = firestore.client()
     # Reference to the specific document in Firestore that tracks usage.
     usage_doc_ref = db.collection('Usage').document('gemini_usage')
 except Exception as e:
     print(f"ERROR: Could not initialize Firebase. Make sure 'serviceAccountKey.json' is in the correct path. {e}")
+    print(f"ERROR: Could not initialize Firebase. {e}")
     # Provide a dummy client in case of failure so the app doesn't crash on import.
     db = None
     usage_doc_ref = None
