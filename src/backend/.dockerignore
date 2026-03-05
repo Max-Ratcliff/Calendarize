@@ -14,3 +14,7 @@ pip-delete-this-directory.txt
 .gitignore
 Dockerfile
 deploy.sh
+# Secrets should never be in the image
+client_secret.json
+utils/*.json
+firebase_servicekey.json
