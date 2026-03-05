@@ -33,7 +33,7 @@ class Parser:
     def __init__(self):
         if (get_model() == "gemini"):
             self.client = Gemini.Client(api_key=get_gemini_key())
-            self.model = "gemini-2.0-flash-lite"
+            self.model = "gemini-2.5-flash-lite"
         else:
             self.client = OpenAI(api_key=get_openai_key())
             self.model = "gpt-4o-mini"
