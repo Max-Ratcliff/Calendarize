@@ -1,6 +1,7 @@
 # Secrets and Configuration
 .env
 firebase_servicekey.json
+client_secret.json
 
 # Environment & Secrets
 .env*
