@@ -1,8 +1,14 @@
 # Standard library imports
-from datetime import datetime
 import json
 import logging
 import traceback
+from datetime import datetime
+
+from event_generation.config.readenv import get_gemini_key
+from event_generation.event.date_parser import parse_datetime
+
+# Local application imports
+from event_generation.event.event import Event
 
 # Third-party imports
 # from dotenv import load_dotenv
@@ -10,12 +16,9 @@ import traceback
 from google import genai as Gemini
 from google.genai import types
 from pydantic import ValidationError
+
 # import tzlocal as tz
 
-# Local application imports
-from event_generation.event.event import Event
-from event_generation.event.date_parser import parse_datetime
-from event_generation.config.readenv import get_gemini_key
 
 logging.basicConfig(level=logging.ERROR)  # Configure logging
 
@@ -24,9 +27,11 @@ class GeminiParser:
     def __init__(self):
         # Initialize OpenAI client with API key
         self.client = Gemini.Client(api_key=get_gemini_key())
-        self.model = "gemini-2.0-flash-lite"
+        self.model = "gemini-2.5-flash-lite"
 
-    def parse(self, text: str, local_time: str, local_tz: str, image_path=None) -> Event:
+    def parse(
+        self, text: str, local_time: str, local_tz: str, image_path=None
+    ) -> Event:
         # send request to OpenAI API to extract event details into a JSON object
         try:
             # get current time up to the minute for relative date calculations
@@ -39,7 +44,6 @@ class GeminiParser:
                         Use the Information about the current time: **{time_info}** and the current timezone is: **{current_time_zone}**.
 
                         **Important Insctructions:**
-                        - It is important **to always put a date in the future** unless it specifies a date in the past. If the start date is before the current date then double check the event
                         - If a date is relative (e.g., "tomorrow at 2pm", "in two hours"), convert it into an absolute datetime based on the current time.
                         - Be careful with relative dates (e.g., "Next Monday") always pay close attention to the year, and make sure the date is in the future.
                             dont assume that monday always falls on the same day of the month every year. **double check this every time**.
@@ -110,25 +114,47 @@ class GeminiParser:
 
                         here is an example of the JSON object you should return:
 
-                        request: Slug Ai Meeting every tuesday thursday at 5pm
-                        event:
+                        request: Slug Ai Meeting every tuesday thursday at 5pm, and monday meeting every week 7-9pm from 03/03-05/10 with bob@example.com at the red room
+                        result:
                         {{
                             "events": [
-                            {{
-                                "title": "Slug Ai Meeting",
-                                "is_all_day": False,
-                                "start_time": "20250220T170000",
-                                "time_zone": "America/Los_Angeles",
-                                "end_time": "20250220T180000",
-                                "description": "Bi-weekly Slug Ai meeting",
-                                "location": None,
-                                "attendees": [],
-                                "is_recurring": true,
-                                "recurrence_pattern": "WEEKLY",
-                                "recurrence_days": ["TU", "TH"],
-                                "recurrence_count": None,
-                                "recurrence_end_date": None
-                            }},
+                                {{
+                                    "title": "Slug Ai Meeting",
+                                    "is_all_day": false,
+                                    "start_time": "20250318T170000",
+                                    "end_time": "20250318T180000",
+                                    "time_zone": "America/Los_Angeles",
+                                    "description": null,
+                                    "location": null,
+                                    "attendees": [],
+                                    "is_recurring": true,
+                                    "recurrence_pattern": "WEEKLY",
+                                    "recurrence_days": [
+                                            "TU",
+                                            "TH"
+                                            ],
+                                    "recurrence_count": null,
+                                    "recurrence_end_date": null
+                                }},
+                                {{
+                                    "title": "Monday Meeting",
+                                    "is_all_day": false,
+                                    "start_time": "20250303T190000",
+                                    "end_time": "20250303T210000",
+                                    "time_zone": "America/Los_Angeles",
+                                    "description": "Meeting with bob@example.com at the red room",
+                                    "location": "the red room",
+                                    "attendees": [
+                                        "bob@example.com"
+                                    ],
+                                    "is_recurring": true,
+                                    "recurrence_pattern": "WEEKLY",
+                                    "recurrence_days": [
+                                        "MO"
+                                    ],
+                                    "recurrence_count": null,
+                                    "recurrence_end_date": "20250510"
+                                }},
                             ]
                         }}
                         """
@@ -147,7 +173,7 @@ class GeminiParser:
                 # Create a Part object for the image
                 image_part = types.Part.from_bytes(
                     data=image_bytes,
-                    mime_type="image/jpeg"  # or image/png, etc., depending on your file
+                    mime_type="image/jpeg",  # or image/png, etc., depending on your file
                 )
 
                 print("\nwaiting on response from Gemini API...")
@@ -157,8 +183,8 @@ class GeminiParser:
                     model=self.model,
                     config=types.GenerateContentConfig(system_instruction=prompt),
                     contents=[
-                        text,       # your text prompt
-                        image_part  # the Part object for the image
+                        text,  # your text prompt
+                        image_part,  # the Part object for the image
                     ],
                 )
 
@@ -173,14 +199,14 @@ class GeminiParser:
         # catch any errors gracefully
         except ConnectionError as ce:
             logging.error(
-                "Connection error while sending request to OpenAI API: %s", ce
+                "Connection error while sending request to Gemini API: %s", ce
             )
-            return "A connection error occurred while communicating with OpenAI API. Please check your internet connection."
+            return "A connection error occurred while communicating with Gemini API. Please check your internet connection."
 
         except ValueError as ve:
-            logging.error("Invalid input or response from OpenAI: %s", ve)
+            logging.error("Invalid input or response from Gemini: %s", ve)
             return (
-                "An error occurred due to an invalid input or response from OpenAI API."
+                "An error occurred due to an invalid input or response from Gemini API."
             )
 
         except Exception as e:
@@ -197,9 +223,14 @@ class GeminiParser:
             # Extract the first candidate’s first part text
             raw_text = response.candidates[0].content.parts[0].text
 
+            print("\nRaw Text:\n", raw_text)
+
+            if not raw_text:
+                raise ValueError("No event data extracted from the text")
+
             # Check if the text starts with "```json" and remove it
             if raw_text.startswith("```json"):
-                raw_text = raw_text[len("```json"):].strip()
+                raw_text = raw_text[len("```json") :].strip()
 
             # Check if the text ends with "```" and remove it
             if raw_text.endswith("```"):
@@ -207,20 +238,26 @@ class GeminiParser:
 
             clean_text = raw_text
 
-            # print("\nCleaned JSON Text:\n", raw_text)
+            if not clean_text:
+                raise ValueError("No event data extracted from the text")
+            print("\nCleaned JSON Text:\n", clean_text)
 
-            # Now parse the cleaned JSON text
-            event_data = json.loads(clean_text)
-            # print("\nParsed Event Data:\n", json.dumps(event_data, indent=4))
-            # Ensure required fields exist
+            try:
+                event_data = json.loads(clean_text)
+            except json.JSONDecodeError as e:
+                print("JSON parsing error:", e)
+                print("Input causing error:", repr(clean_text))
 
             event_list = []
             # Create Event object by parsing Json fields
+            print("\nEvent Data:\n", event_data)
             for event in event_data["events"]:
                 print("\nEvent:\n", json.dumps(event, indent=4))
                 print()
                 if not event.get("title") or not event.get("start_time"):
-                    raise ValueError("Missing required fields: 'title' and/or 'start_time'")
+                    raise ValueError(
+                        "Missing required fields: 'title' and/or 'start_time'"
+                    )
                 new_event = Event(
                     title=event.get("title"),
                     is_all_day=event.get("is_all_day", False),

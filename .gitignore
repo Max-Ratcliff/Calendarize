@@ -1,5 +1,16 @@
 # Secrets and Configuration
 .env
+firebase_servicekey.json
+
+# Environment & Secrets
+.env*
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!components.json
+!client_secret.json.example
+!firebase_servicekey.json.example
 
 # Python
 __pycache__/
@@ -8,31 +19,36 @@ __pycache__/
 *.so
 .Python
 env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environment
 venv/
 ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
 
-# IDE
+# Node / Frontend
+node_modules/
+.next/
+out/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE & OS
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# OS
 .DS_Store
 Thumbs.db
+feature_plans/
+.gemini-clipboard
+
+# App Specific
+src/backend/uploads/*
+!src/backend/uploads/.gitkeep

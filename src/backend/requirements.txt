@@ -1,30 +1,69 @@
-# Core Framework
+annotated-types==0.7.0
+anyio==4.8.0
+CacheControl==0.14.3
+cachetools==5.5.1
+certifi==2025.1.31
+cffi==1.17.1
+charset-normalizer==3.4.1
+click==8.1.8
+cryptography==45.0.5
+distro==1.9.0
 fastapi==0.115.8
-uvicorn==0.34.0
-pydantic==2.10.6
-# python-multipart==0.0.9  # Required for form data handling (file uploads)
-
-# OpenAI Integration
-openai==1.61.0
-google-genai==1.5.0
-
-# Calendar Integration
+firebase_admin==7.0.0
+google-api-core==2.25.1
 google-api-python-client==2.119.0
+google-auth==2.38.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
+google-cloud-core==2.4.3
+google-cloud-firestore==2.21.0
+google-cloud-storage==3.2.0
+google-crc32c==1.7.1
+google-genai==1.5.0
+google-resumable-media==2.7.2
+googleapis-common-protos==1.66.0
+grpcio==1.73.1
+grpcio-status==1.71.2
+h11==0.14.0
+h2==4.2.0
+hpack==4.1.0
+httpcore==1.0.7
+httplib2==0.22.0
+httpx==0.28.1
+hyperframe==6.1.0
 icalendar==5.0.11
-
-# Date/Time Handling
-python-dateutil==2.8.2
-tzlocal==5.2
-
-# Utilities
-python-dotenv==1.0.1
-requests==2.31.0
-python-multipart
-
-# Image Handling (Optional, only if needed for image parsing)
-# pillow==10.2.0
-
-# Testing (Optional)
+idna==3.10
+iniconfig==2.0.0
+jiter==0.8.2
+msgpack==1.1.1
+oauthlib==3.2.2
+openai==1.61.0
+packaging==24.2
+pluggy==1.5.0
+proto-plus==1.26.0
+protobuf==5.29.3
+pyasn1==0.6.1
+pyasn1_modules==0.4.1
+pycparser==2.22
+pydantic==2.10.6
+pydantic_core==2.27.2
+PyJWT==2.10.1
+pyparsing==3.2.1
 pytest==8.0.0
+python-dateutil==2.8.2
+python-dotenv==1.0.1
+python-multipart==0.0.20
+pytz==2025.1
+requests==2.31.0
+requests-oauthlib==2.0.0
+rsa==4.9
+six==1.17.0
+sniffio==1.3.1
+starlette==0.45.3
+tqdm==4.67.1
+typing_extensions==4.12.2
+tzlocal==5.2
+uritemplate==4.1.1
+urllib3==2.3.0
+uvicorn==0.34.0
+websockets==14.2
