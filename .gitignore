@@ -9,7 +9,7 @@ firebase_servicekey.json
 !package-lock.json
 !tsconfig.json
 !components.json
-!client_secret.json.example
+# !client_secret.json.example
 !firebase_servicekey.json.example
 
 # Python
