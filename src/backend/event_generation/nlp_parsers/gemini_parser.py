@@ -21,7 +21,7 @@ from utils.logger import logger
 
 
 def _make_gemini_schema(schema: dict) -> dict:
-    """Inline $ref definitions and strip 'default' keys for Gemini response_schema compatibility."""
+    """Inline $ref, strip 'default', and flatten Optional[X] anyOf for Gemini compatibility."""
     defs = schema.get("$defs", {})
 
     def resolve(obj):
@@ -29,6 +29,13 @@ def _make_gemini_schema(schema: dict) -> dict:
             if "$ref" in obj:
                 ref_name = obj["$ref"].split("/")[-1]
                 return resolve(defs.get(ref_name, obj))
+            # Flatten Optional[X] → anyOf[X, null] into just X
+            if "anyOf" in obj:
+                non_null = [t for t in obj["anyOf"] if t.get("type") != "null"]
+                if len(non_null) == 1:
+                    base = {k: v for k, v in obj.items() if k not in ("anyOf", "default", "$defs")}
+                    base.update(non_null[0])
+                    return resolve(base)
             return {k: resolve(v) for k, v in obj.items() if k not in ("default", "$defs")}
         if isinstance(obj, list):
             return [resolve(i) for i in obj]

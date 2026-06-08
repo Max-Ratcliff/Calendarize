@@ -13,7 +13,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
-import { GeneratedEventDisplay, CourseGroupCard } from "./generated-event";
+import { GeneratedEventDisplay, CourseGroupCard, GoogleConnectionBadge } from "./generated-event";
 import { CalendarEvent } from "@/app/types/CalendarEvent";
 import { generateEvent } from "@/app/utils/eventGenerator";
 import { pushAllToGoogleCalendar } from "@/app/utils/calendarExport";
@@ -489,7 +489,8 @@ export function CalendarConverter() {
           md:px-0">
 
           {state.events.length > 1 && (
-            <div className="flex justify-end mb-2">
+            <div className="flex justify-end items-center gap-3 mb-2">
+              <GoogleConnectionBadge />
               <Button
                 onClick={() => pushAllToGoogleCalendar(state.events)}
                 className="bg-[#218F98] hover:bg-[#1a747b] text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105"

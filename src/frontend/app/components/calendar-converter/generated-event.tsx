@@ -1,7 +1,7 @@
 import React, { JSX } from "react"
 import { CalendarEvent } from "@/app/types/CalendarEvent"
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card"
-import { exportToGoogleCalendar, exportToICal, exportToOutlook, pushToGoogleCalendar, pushAllToGoogleCalendar, connectGoogle, disconnectGoogle } from "@/app/utils/calendarExport"
+import { exportToGoogleCalendar, exportToICal, pushToGoogleCalendar, pushAllToGoogleCalendar, connectGoogle, disconnectGoogle } from "@/app/utils/calendarExport"
 import { Button } from "@/app/components/ui/button"
 import { format, parseISO, isValid } from "date-fns"
 
@@ -260,7 +260,7 @@ EventDetails.displayName = 'EventDetails';
 
 // Pill button showing Google connection state.
 // Orange = not connected (click to connect), green = connected (click to disconnect).
-const GoogleConnectionBadge: React.FC = () => {
+export const GoogleConnectionBadge: React.FC = () => {
   const [connected, setConnected] = React.useState(false);
   const [connecting, setConnecting] = React.useState(false);
 
@@ -361,12 +361,8 @@ const MobileExportSection: React.FC<{ event: CalendarEvent }> = React.memo(({ ev
           label="Google Link" 
           onClick={() => exportToGoogleCalendar(event)}
         />
-        <ExportButton 
-          label="Outlook" 
-          onClick={() => exportToOutlook(event)}
-        />
-        <ExportButton 
-          label="Apple (ICS)"
+        <ExportButton
+          label="Outlook / Apple"
           onClick={() => exportToICal(event)}
         />
       </div>
@@ -417,12 +413,8 @@ const DesktopExportSection: React.FC<{ event: CalendarEvent }> = React.memo(({ e
           label="Google Link" 
           onClick={() => exportToGoogleCalendar(event)}
         />
-        <ExportButton 
-          label="Outlook" 
-          onClick={() => exportToOutlook(event)}
-        />
-        <ExportButton 
-          label="Apple (ICS)"
+        <ExportButton
+          label="Outlook / Apple"
           onClick={() => exportToICal(event)}
         />
       </div>
@@ -634,16 +626,10 @@ const CourseSectionRow: React.FC<{ event: CalendarEvent; isLast: boolean }> = Re
             Google Link →
           </button>
           <button
-            onClick={() => exportToOutlook(event)}
+            onClick={() => exportToICal(event)}
             className="px-3 py-1 rounded text-xs font-medium text-white bg-[#071E37] hover:bg-[#0d2d4f] transition-colors"
           >
-            Outlook →
-          </button>
-          <button
-            onClick={() => exportToICal(event)}
-            className="px-3 py-1 rounded text-xs font-medium text-white bg-[#218F98] hover:bg-[#1a747b] transition-colors"
-          >
-            ICS →
+            Outlook / Apple →
           </button>
         </div>
       </div>
@@ -665,7 +651,6 @@ export function CourseGroupCard({ groupId, events }: { groupId: string; events: 
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <GoogleConnectionBadge />
           <button
             onClick={() => pushAllToGoogleCalendar(events)}
             className="px-3 py-1.5 rounded text-xs font-semibold text-white bg-[#218F98] hover:bg-[#1a747b] transition-colors whitespace-nowrap"
