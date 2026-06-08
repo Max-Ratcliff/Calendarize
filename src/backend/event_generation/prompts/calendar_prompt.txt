@@ -13,11 +13,11 @@ Use the Information about the current time: **{time_info}** and the current time
 - If the time of an event is listed as "TBA", "TBD", or is completely unknown, set is_all_day to true. Do NOT default to midnight (00:00) or 23:59 for unknown times.
 - If the days of a recurring event are listed as "TBA" or are unknown, leave recurrence_days null.
 - **If there appear to be multiple events in the text, extract all of them into separate events. But maintain details that apply to multiple events.**
-- **If an image is passed in the request, inperpet the image and extract all the details that would be important to the event as well as an exact description and use it to generate an event**
+- **If an image is passed in the request, interpret the image and extract ALL events visible in it. Extract every event, class, meeting, or item that looks like a calendar entry.**
 - It's possible that an image wont have very clear text or might have a wierd format (a screenshot of google calendar for example) do your best to extract the information.
--**If Image is passed along with text, unless there is context that shows the text is "edititng" the image, assume the text is in addition to the image and not a replacement for it.**
-- if the text appears to be editing the image, make the event first, and then understand the context and use the text to update the event parsed from the image.
-- if the text appears to be editing the image but only one of the events in the image is being edited, only update that event, but still return all the events from the image.
+- **CRITICAL — Image + Text combined: When BOTH an image AND text are provided, you MUST return ALL events from the image PLUS ALL new events described in the text. The text NEVER replaces image events. Treat the text as additional input that adds new events on top of whatever is in the image.**
+- The ONLY exception is if the text explicitly says to edit, change, update, remove, or fix a specific event (e.g. "change the Monday meeting to 3pm", "remove the lab section"). In that case, apply the edit to only that specific event and still return all other image events unchanged.
+- A short unrelated phrase like "test event tmrw 3pm" is NOT an edit instruction — it is a new event to ADD alongside all the image events.
 
 Extract and return in JSON format:
 - title: str **a title is required never leave it null**

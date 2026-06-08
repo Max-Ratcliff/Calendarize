@@ -524,18 +524,7 @@ export function CalendarConverter() {
                   <CourseGroupCard key={groupId} groupId={groupId} events={groups[groupId]} />
                 ))}
                 {standalone.map(({ event, index }) => (
-                  <Card key={index} className="w-full
-                    md:border-[#218F98]
-                    bg-white
-                    md:bg-white/95
-                    shadow-none
-                    md:shadow-sm
-                    relative
-                    border-0
-                    md:border-2">
-                    <Sparkle position="right" />
-                    <GeneratedEventDisplay event={event} />
-                  </Card>
+                  <GeneratedEventDisplay key={index} event={event} />
                 ))}
               </>
             );

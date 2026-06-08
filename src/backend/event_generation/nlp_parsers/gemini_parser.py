@@ -20,6 +20,17 @@ from pydantic import ValidationError
 from utils.logger import logger
 
 
+def _sanitize_empty(obj):
+    """Recursively convert empty strings to None — Gemini returns '' instead of null for optional fields."""
+    if isinstance(obj, dict):
+        return {k: _sanitize_empty(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_empty(i) for i in obj]
+    if isinstance(obj, str) and obj in ("", "null"):
+        return None
+    return obj
+
+
 def _make_gemini_schema(schema: dict) -> dict:
     """Inline $ref, strip 'default', and flatten Optional[X] anyOf for Gemini compatibility."""
     defs = schema.get("$defs", {})
@@ -114,14 +125,13 @@ class GeminiParser:
                 raise ValueError("No event data extracted from the text")
 
             try:
-                # Use Pydantic to validate the entire response structure
-                ai_response = AIResponse.model_validate_json(raw_text)
-            except ValidationError as ve:
-                logger.error(f"Pydantic Validation Error for AI response: {ve} | Input: {repr(raw_text)}")
-                return f"The AI returned data that failed validation: {str(ve)}"
+                ai_response = AIResponse.model_validate(_sanitize_empty(json.loads(raw_text)))
             except json.JSONDecodeError as e:
                 logger.error(f"JSON parsing error: {e} | Input: {repr(raw_text)}")
                 return "Failed to parse the AI response as valid JSON."
+            except ValidationError as ve:
+                logger.error(f"Pydantic Validation Error for AI response: {ve} | Input: {repr(raw_text)}")
+                return f"The AI returned data that failed validation: {str(ve)}"
 
             event_list = []
             # Create Event object by parsing validated fields
