@@ -13,7 +13,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
-import { GeneratedEventDisplay } from "./generated-event";
+import { GeneratedEventDisplay, CourseGroupCard } from "./generated-event";
 import { CalendarEvent } from "@/app/types/CalendarEvent";
 import { generateEvent } from "@/app/utils/eventGenerator";
 import { pushAllToGoogleCalendar } from "@/app/utils/calendarExport";
@@ -482,15 +482,15 @@ export function CalendarConverter() {
       </Card>
 
       {state.events.length > 0 && (
-        <div className="space-y-4 
-          md:space-y-6 
+        <div className="space-y-4
+          md:space-y-6
           w-full
           px-4
           md:px-0">
-          
+
           {state.events.length > 1 && (
             <div className="flex justify-end mb-2">
-              <Button 
+              <Button
                 onClick={() => pushAllToGoogleCalendar(state.events)}
                 className="bg-[#218F98] hover:bg-[#1a747b] text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105"
               >
@@ -499,20 +499,46 @@ export function CalendarConverter() {
             </div>
           )}
 
-          {state.events.map((event, index) => (
-            <Card key={index} className="w-full 
-              md:border-[#218F98] 
-              bg-white
-              md:bg-white/95 
-              shadow-none
-              md:shadow-sm 
-              relative
-              border-0
-              md:border-2">
-              <Sparkle position="right" />
-              <GeneratedEventDisplay event={event} />
-            </Card>
-          ))}
+          {(() => {
+            // Group events by group_id; preserve insertion order of groups
+            const groupOrder: string[] = [];
+            const groups: Record<string, CalendarEvent[]> = {};
+            const standalone: { event: CalendarEvent; index: number }[] = [];
+
+            state.events.forEach((event, index) => {
+              if (event.group_id) {
+                if (!groups[event.group_id]) {
+                  groups[event.group_id] = [];
+                  groupOrder.push(event.group_id);
+                }
+                groups[event.group_id].push(event);
+              } else {
+                standalone.push({ event, index });
+              }
+            });
+
+            return (
+              <>
+                {groupOrder.map(groupId => (
+                  <CourseGroupCard key={groupId} groupId={groupId} events={groups[groupId]} />
+                ))}
+                {standalone.map(({ event, index }) => (
+                  <Card key={index} className="w-full
+                    md:border-[#218F98]
+                    bg-white
+                    md:bg-white/95
+                    shadow-none
+                    md:shadow-sm
+                    relative
+                    border-0
+                    md:border-2">
+                    <Sparkle position="right" />
+                    <GeneratedEventDisplay event={event} />
+                  </Card>
+                ))}
+              </>
+            );
+          })()}
         </div>
       )}
 

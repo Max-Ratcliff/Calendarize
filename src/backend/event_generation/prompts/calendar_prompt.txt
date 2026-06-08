@@ -10,6 +10,8 @@ Use the Information about the current time: **{time_info}** and the current time
 - If the time is given in a range (e.g., 2-4pm) use the first part of the range as the start_time (eg: 2pm) and the second part as the end_time (eg: 4pm).
 - If only a time is given (e.g., "at 2pm"), assume it refers to today unless the event is clearly in the future.
 - 24:00 is not a valid time always default to use 23:59 instead.
+- If the time of an event is listed as "TBA", "TBD", or is completely unknown, set is_all_day to true. Do NOT default to midnight (00:00) or 23:59 for unknown times.
+- If the days of a recurring event are listed as "TBA" or are unknown, leave recurrence_days null.
 - **If there appear to be multiple events in the text, extract all of them into separate events. But maintain details that apply to multiple events.**
 - **If an image is passed in the request, inperpet the image and extract all the details that would be important to the event as well as an exact description and use it to generate an event**
 - It's possible that an image wont have very clear text or might have a wierd format (a screenshot of google calendar for example) do your best to extract the information.
@@ -29,7 +31,8 @@ Extract and return in JSON format:
     -- **This field is required never leave it null, if you are at all unsure defualt to 1 hour afte start_time**
     -- the time should only be accurate to the minute. Format: YYYYMMDDTHHMM00
     -- if it is an all day event then update the flag
-    -- if the end time is not specified, use context to make a best guess and assume that either the event is 1 hour long or continues to the end of the day 23:59.
+    -- if the end time is not specified and the time is known, default to 1 hour after the start time.
+    -- never default to 23:59 unless the user explicitly says an event "continues to end of day" or similar.
     -- if the end time is specified without a date, assume it has the same date as the start time.
     -- if the date is given without a time, assume the event is an all-day event
     -- if the duration is specified, calculate the end time based on the start time.
@@ -67,10 +70,48 @@ Extract and return in JSON format:
     -- if the event is recurring, try to tell if the user specifies the number of recurrences or the end date, if the number of recurrences is specified, provide it. otherwise, leave it null.
 -recurrence_end_date: Optional[str] Should be in just Date format YYYYMMDD (e.g., "20250130") DO NOT INCLUDE TIME
     -- if the event is recurring, provide the end date of the recurrence. otherwise, leave it null to indicate that the recurrence is indefinite.
+-group_id: Optional[str]
+    -- for class/course events: set this to the base lecture course code (e.g., "ECE 101", "CSE 113", "THEA 61A").
+    -- all sections of the same course (lecture, lab, discussion) must share the same group_id.
+    -- if a course has both a lecture and a companion lab/section (e.g., ECE 101 lecture and ECE 101L lab), they are the SAME course — use the lecture's course code as the group_id for ALL of them (e.g., group_id "ECE 101" for both ECE 101 and ECE 101L).
+    -- when you encounter a lab or section event, scan all other events for a lecture whose course code is a prefix of this one (e.g., "ECE 101" is a prefix of "ECE 101L") — if found, assign both the same group_id using the shorter/base code.
+    -- for non-course events (meetings, appointments, deadlines, etc.), leave this null.
+-event_category: Optional[str]
+    -- for class sections use one of: "lecture", "lab", "discussion", "section"
+    -- for other events use one of: "meeting", "deadline", "appointment", "other"
+    -- leave null only if the category truly cannot be determined.
 
 If any field is missing, return null.
 
 here is an example of the JSON object you should return:
+
+request: ECE 101L - Intr Elec Circ Lab
+SecndryLab  01A  11993
+TBA
+TBD In Person
+09/24/2026 - 12/04/2026
+result:
+{{
+    "events": [
+        {{
+            "title": "ECE 101L - Intro Elec Circuits Lab",
+            "is_all_day": true,
+            "start_time": "20260924T000000",
+            "end_time": "20260924T000000",
+            "time_zone": "America/Los_Angeles",
+            "description": "Time not yet scheduled (TBA). Check enrollment system for updates.",
+            "location": "TBD In Person",
+            "attendees": [],
+            "is_recurring": true,
+            "recurrence_pattern": "WEEKLY",
+            "recurrence_days": null,
+            "recurrence_count": null,
+            "recurrence_end_date": "20261204",
+            "group_id": "ECE 101",
+            "event_category": "lab"
+        }}
+    ]
+}}
 
 request: Slug Ai Meeting every tuesday thursday at 5pm, and monday meeting every week 7-9pm from 03/03-05/10 with bob@example.com at the red room
 result:
@@ -87,12 +128,11 @@ result:
             "attendees": [],
             "is_recurring": true,
             "recurrence_pattern": "WEEKLY",
-            "recurrence_days": [
-                    "TU",
-                    "TH"
-                    ],
+            "recurrence_days": ["TU", "TH"],
             "recurrence_count": null,
-            "recurrence_end_date": null
+            "recurrence_end_date": null,
+            "group_id": null,
+            "event_category": "meeting"
         }},
         {{
             "title": "Monday Meeting",
@@ -107,11 +147,11 @@ result:
             ],
             "is_recurring": true,
             "recurrence_pattern": "WEEKLY",
-            "recurrence_days": [
-                "MO"
-            ],
+            "recurrence_days": ["MO"],
             "recurrence_count": null,
-            "recurrence_end_date": "20250510"
+            "recurrence_end_date": "20250510",
+            "group_id": null,
+            "event_category": "meeting"
         }},
     ]
 }}

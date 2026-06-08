@@ -1,5 +1,3 @@
-import React from "react"
-
 export default function PrivacyPolicy() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 text-[#071E37] font-sans">
@@ -13,7 +11,7 @@ export default function PrivacyPolicy() {
 
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">2. Data We Collect</h2>
-        <p className="mb-4"><strong>Google Calendar Data:</strong> If you use the "Push to Google" feature, we request temporary access to your Google Calendar to create events. We do not store your calendar events on our servers. Access tokens are stored in your browser's local storage and a temporary in-memory session on our server which is cleared regularly.</p>
+        <p className="mb-4"><strong>Google Calendar Data:</strong> If you use the "Push to Google" feature, we request temporary access to your Google Calendar to create events. We do not store your calendar events on our servers. The OAuth access token is saved to your browser's local storage (not a cookie) and expires after approximately one hour. A corresponding in-memory session is held on our server only for the duration of that token's lifetime and is never written to disk or a database. You can disconnect at any time using the "Google connected" button, or by revoking access from your <a href="https://myaccount.google.com/permissions" target="_blank" className="underline hover:text-[#218F98]">Google Account permissions page</a>. Access is scoped to <code>calendar.app.created</code> only — we can create events on a dedicated Calendarize calendar in your account, but cannot read, modify, or delete events on your existing calendars.</p>
         <p className="mb-4"><strong>Content:</strong> Any text or images you upload for conversion are processed by Google's Gemini API. We do not store these uploads permanently.</p>
       </section>
 

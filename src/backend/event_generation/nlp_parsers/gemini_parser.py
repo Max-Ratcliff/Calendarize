@@ -4,12 +4,12 @@ import logging
 import traceback
 from datetime import datetime
 
-from event_generation.config.readenv import get_gemini_key
-from event_generation.event.date_parser import parse_datetime
+from ..config.readenv import get_gemini_key
+from ..event.date_parser import parse_datetime
 
 # Local application imports
-from event_generation.event.event import Event
-from event_generation.event.schemas import AIResponse
+from ..event.event import Event
+from ..event.schemas import AIResponse
 
 # Third-party imports
 # from dotenv import load_dotenv
@@ -18,6 +18,23 @@ from google import genai as Gemini
 from google.genai import types
 from pydantic import ValidationError
 from utils.logger import logger
+
+
+def _make_gemini_schema(schema: dict) -> dict:
+    """Inline $ref definitions and strip 'default' keys for Gemini response_schema compatibility."""
+    defs = schema.get("$defs", {})
+
+    def resolve(obj):
+        if isinstance(obj, dict):
+            if "$ref" in obj:
+                ref_name = obj["$ref"].split("/")[-1]
+                return resolve(defs.get(ref_name, obj))
+            return {k: resolve(v) for k, v in obj.items() if k not in ("default", "$defs")}
+        if isinstance(obj, list):
+            return [resolve(i) for i in obj]
+        return obj
+
+    return resolve(schema)
 
 
 class GeminiParser:
@@ -58,7 +75,8 @@ class GeminiParser:
                 model=self.model,
                 config=types.GenerateContentConfig(
                     system_instruction=prompt,
-                    response_mime_type="application/json"
+                    response_mime_type="application/json",
+                    response_schema=_make_gemini_schema(AIResponse.model_json_schema()),
                 ),
                 contents=contents,
             )
@@ -116,6 +134,8 @@ class GeminiParser:
                     recurrence_days=event.recurrence_days,
                     recurrence_count=event.recurrence_count,
                     recurrence_end_date=(parse_datetime(event.recurrence_end_date) if event.recurrence_end_date else None),
+                    group_id=event.group_id,
+                    event_category=event.event_category,
                 )
                 
                 # Sanity check for dates

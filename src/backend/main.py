@@ -11,6 +11,7 @@ import os
 from event_generation.nlp_parsers.gemini_parser import GeminiParser
 from event_generation.event.event import Event
 from utils.logger import logger
+from googleapiclient.discovery import build as build_gcal
 from utils.google_calendar import get_flow, get_calendar_service, push_event_to_calendar
 
 app = FastAPI()
@@ -60,23 +61,49 @@ async def google_login():
 token_sessions = {}
 
 @app.get("/auth/google/callback")
-async def google_callback(code: str, response: Response):
+async def google_callback(code: str, response: Response = None):
     """Handles the OAuth callback and stores the token in a session."""
     try:
         logger.info("Received Google OAuth callback")
         flow = get_flow(CALLBACK_URL)
         flow.fetch_token(code=code)
         creds = flow.credentials
-        
+
         token_dict = json.loads(creds.to_json())
         access_token = token_dict.get("token")
-        
+
         if not access_token:
             raise Exception("Failed to obtain access token")
-            
-        # Store full credentials in memory, keyed by access_token
-        token_sessions[access_token] = token_dict
-        
+
+        # Find or create the Calendarize secondary calendar.
+        # calendarlist.readonly lets us list to find an existing one; app.created lets us create/manage it.
+        # Use flow.credentials directly — already valid, avoids the expiry check in get_calendar_service.
+        calendar_id = None
+        try:
+            service = build_gcal('calendar', 'v3', credentials=creds)
+            cal_list = service.calendarList().list().execute()
+            for cal in cal_list.get('items', []):
+                if cal.get('summary') == 'Calendarize':
+                    calendar_id = cal['id']
+                    logger.info(f"Reusing existing Calendarize calendar: {calendar_id}")
+                    break
+
+            if not calendar_id:
+                created = service.calendars().insert(body={
+                    'summary': 'Calendarize',
+                    'description': 'Events created by Calendarize (calendarize.ratcliff.cc)',
+                }).execute()
+                calendar_id = created['id']
+                logger.info(f"Created Calendarize calendar: {calendar_id}")
+        except Exception:
+            logger.exception("Could not find/create Calendarize calendar at auth time")
+
+        # Store credentials and calendar_id separately so credentials dict stays clean
+        token_sessions[access_token] = {
+            'credentials': token_dict,
+            'calendarize_calendar_id': calendar_id,
+        }
+
         # Set the access_token in a cookie (much smaller, no base64 needed)
         is_prod = os.getenv("ENV") == "production"
         response.set_cookie(
@@ -87,9 +114,9 @@ async def google_callback(code: str, response: Response):
             samesite="lax" if not is_prod else "none",
             max_age=3600 * 24 * 7 # 1 week
         )
-        
+
         logger.info(f"Successfully processed Google token for session: {access_token[:10]}...")
-        
+
         return HTMLResponse(content=f"""
             <html>
                 <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
@@ -100,7 +127,8 @@ async def google_callback(code: str, response: Response):
                             if (window.opener) {{
                                 window.opener.postMessage({{
                                     type: 'auth-success',
-                                    token: '{access_token}'
+                                    token: '{access_token}',
+                                    calendarId: '{calendar_id or ""}'
                                 }}, '*');
                             }}
                         }} catch (e) {{
@@ -132,21 +160,24 @@ async def push_to_google(request: Request):
         logger.warning("Push attempted without token")
         raise HTTPException(status_code=401, detail="Not authenticated with Google")
     
-    # Retrieve full credentials from session store
-    token_dict = token_sessions.get(access_token)
-    
-    if not token_dict:
+    session = token_sessions.get(access_token)
+
+    if not session:
         logger.warning(f"Session not found for token: {access_token[:10]}...")
         raise HTTPException(status_code=401, detail="Session expired or invalid. Please login again.")
-    
+
     try:
         body = await request.json()
+        token_dict = session['credentials']
+        # Prefer calendarId sent by the frontend (cached in localStorage) over session value.
+        # This survives server restarts that wipe token_sessions.
+        calendar_id = request.headers.get('X-Calendar-Id') or session.get('calendarize_calendar_id')
         service = get_calendar_service(token_dict)
-        
+
         if not service:
             raise HTTPException(status_code=401, detail="Invalid or expired Google session")
-            
-        result = push_event_to_calendar(service, body)
+
+        result = push_event_to_calendar(service, body, calendar_id)
         return {"status": "success", "htmlLink": result.get("htmlLink")}
     except Exception as e:
         logger.exception("Failed to push event")

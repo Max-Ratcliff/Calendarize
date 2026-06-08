@@ -61,6 +61,7 @@ export const generateEvent = async (
 		description: event.description || "No description provided for this event.",
 		location: event.location || "",
 		attendees: event.attendees || [],
+		is_all_day: event.is_all_day ?? false,
 		recurrence_type: event.recurrence_pattern || "",
 		recurrence_days: event.recurrence_days || [],
 		recurrence_count: event.recurrence_count || 0,
@@ -68,7 +69,19 @@ export const generateEvent = async (
 		gcal_link: event.gcal_link || "",
 		outlook_link: event.outlook_link || "",
 		ics_string: event.ics || "",
+		group_id: event.group_id || undefined,
+		event_category: event.event_category || undefined,
 		}));
+
+		// Fallback: infer group_id from title for course events Gemini forgot to group.
+		// Matches titles like "THEA 61A - Ancient Drama" or "CSE 113 - Parallel Programming".
+		const COURSE_CODE_RE = /^([A-Z]{2,6}\s+\d+[A-Z0-9]*)\s*[-–]/;
+		for (const e of events) {
+			if (!e.group_id) {
+				const m = e.title.match(COURSE_CODE_RE);
+				if (m) e.group_id = m[1];
+			}
+		}
 
 		logger.info(`Successfully generated ${events.length} events`);
 		logger.debug("Events data", { events });

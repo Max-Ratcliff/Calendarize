@@ -7,12 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 # Local imports
-try:
-    from event_generation.config.readenv import load_environment
-except ImportError:
-    # Fallback for direct execution/different paths
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from event_generation.config.readenv import load_environment
+from event_generation.config.readenv import load_environment
 
 # Initialize env
 load_environment()

@@ -13,4 +13,7 @@ export interface CalendarEvent {
 	gcal_link: string;
 	outlook_link: string;
 	ics_string: string;
+	is_all_day?: boolean;
+	group_id?: string;
+	event_category?: string;
 }

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import List, Optional
 from pydantic import BaseModel, Field
-import event_generation.event.date_parser as dp
+from . import date_parser as dp
 from icalendar import Event as IcalEvent, Calendar, Timezone, TimezoneStandard, TimezoneDaylight
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
@@ -37,6 +37,8 @@ class Event(BaseModel):
     recurrence_days: Optional[List[str]] = None
     recurrence_count: Optional[int] = None
     recurrence_end_date: Optional[datetime] = None
+    group_id: Optional[str] = None
+    event_category: Optional[str] = None
     gcal_link: Optional[str] = None
     outlook_link: Optional[str] = None
     yahoo_link: Optional[str] = None

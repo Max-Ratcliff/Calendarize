@@ -11,14 +11,24 @@ IMAGE_PATH="$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/backend:latest"
 FRONTEND_URL="https://calendarize.ratcliff.cc"
 CALLBACK_URL="https://api.calendarize.ratcliff.cc/auth/google/callback"
 
-echo "🚀 Starting build for $SERVICE_NAME..."
+# Prerequisites (one-time setup):
+#   1. gcloud secrets create GEMINI_API_KEY --data-file=<path-to-key>
+#   2. gcloud secrets create GOOGLE_CLIENT_SECRET --data-file=utils/client_secret.json
+#   3. gcloud secrets create FIREBASE_SERVICE_KEY --data-file=<path-to-firebase-key.json>
+#   4. Grant the Cloud Run service account roles/secretmanager.secretAccessor:
+#      gcloud projects add-iam-policy-binding $PROJECT_ID \
+#        --member="serviceAccount:<SA_EMAIL>" --role="roles/secretmanager.secretAccessor"
+#   5. Add $CALLBACK_URL to the OAuth app's authorized redirect URIs in Google Cloud Console.
+
+echo "Starting build for $SERVICE_NAME..."
 
 # 1. Build the image in the cloud
 gcloud builds submit --tag $IMAGE_PATH .
 
 # 2. Deploy to Cloud Run
-echo "🌍 Deploying to Cloud Run..."
-# We mount secrets as files at the exact paths the code expects
+echo "Deploying to Cloud Run..."
+# Env var secrets: GEMINI_API_KEY=SECRET_NAME:version
+# File-mounted secrets: /container/path=SECRET_NAME:version
 gcloud run deploy $SERVICE_NAME \
   --image $IMAGE_PATH \
   --region $REGION \
@@ -26,4 +36,4 @@ gcloud run deploy $SERVICE_NAME \
   --set-env-vars="ENV=production,FRONTEND_URL=$FRONTEND_URL,CALLBACK_URL=$CALLBACK_URL" \
   --allow-unauthenticated
 
-echo "✅ Deployment Complete!"
+echo "Deployment complete!"

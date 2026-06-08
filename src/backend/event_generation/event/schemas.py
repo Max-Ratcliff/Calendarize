@@ -19,6 +19,8 @@ class AIEvent(BaseModel):
     recurrence_days: Optional[List[str]] = None
     recurrence_count: Optional[int] = None
     recurrence_end_date: Optional[str] = None
+    group_id: Optional[str] = None
+    event_category: Optional[str] = None
 
 class AIResponse(BaseModel):
     """
