@@ -1,7 +1,7 @@
 "use client";
 import React, { JSX } from "react"
 import { CalendarEvent } from "@/app/types/CalendarEvent"
-import { exportToGoogleCalendar, exportToICal, pushToGoogleCalendar, pushAllToGoogleCalendar, connectGoogle, disconnectGoogle } from "@/app/utils/calendarExport"
+import { exportToGoogleCalendar, exportToICal, pushToGoogleCalendar, connectGoogle, disconnectGoogle } from "@/app/utils/calendarExport"
 import { format, parseISO, isValid } from "date-fns"
 
 export type ExportMethod = 'api' | 'ics' | 'manual' | null;
@@ -172,11 +172,11 @@ const ExportButtons: React.FC<{
   return (
     <div className="flex flex-wrap gap-1.5 pt-1">
       <button onClick={handlePush}
-        className={`px-3 py-1 rounded text-xs font-medium text-white transition-colors ${isPushed ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
-        {isPushed ? 'Added' : 'Push'}
+        className={`px-3 py-1 rounded text-xs font-medium text-white transition-colors ${isPushed ? 'bg-green-600 hover:bg-green-700' : 'bg-[#218F98] hover:bg-[#1a747b]'}`}>
+        {isPushed ? 'Added' : 'Sync to Google'}
       </button>
       <button onClick={() => exportToGoogleCalendar(event)}
-        className="px-3 py-1 rounded text-xs font-medium text-white bg-[#218F98] hover:bg-[#1a747b] transition-colors">
+        className="px-3 py-1 rounded text-xs font-medium text-[#218F98] border border-[#218F98] bg-white hover:bg-[#218F98]/10 transition-colors">
         Google Link
       </button>
       <button onClick={() => exportToICal(event)}
@@ -385,15 +385,6 @@ export function CourseGroupCard({ groupId, events, eventIndices, exportMethod, i
             <span className="text-[#6B909F] text-sm truncate">{courseName.replace(/^[A-Z0-9]+ -\s*/, '')}</span>
           )}
         </div>
-        {/* Push All only in default mode */}
-        {!exportMethod && (
-          <button
-            onClick={() => pushAllToGoogleCalendar(events)}
-            className="px-3 py-1.5 rounded text-xs font-semibold text-white bg-[#218F98] hover:bg-[#1a747b] transition-colors whitespace-nowrap shrink-0"
-          >
-            Push All
-          </button>
-        )}
       </div>
       {events.map((event, i) => (
         <CourseSectionRow
