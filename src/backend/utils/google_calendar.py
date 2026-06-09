@@ -116,14 +116,21 @@ def push_event_to_calendar(service, event_data: Dict[str, Any], calendar_id: Opt
             calendar_resource['attendees'] = [{'email': email} for email in event_data['attendees']]
 
         if is_recurring and recurrence_pattern:
-            rrule = f"RRULE:FREQ={recurrence_pattern}"
-            if recurrence_pattern == 'WEEKLY' and recurrence_days:
-                rrule += f";BYDAY={','.join(recurrence_days)}"
-            if event_data.get('recurrence_count'):
+            freq = recurrence_pattern.upper()
+            rrule = f"RRULE:FREQ={freq}"
+            if freq == 'WEEKLY' and recurrence_days:
+                rrule += f";BYDAY={','.join(d.upper() for d in recurrence_days)}"
+            # Only add COUNT if there's no end date — COUNT and UNTIL can't coexist (RFC 5545)
+            if event_data.get('recurrence_count') and not recurrence_end_date_str:
                 rrule += f";COUNT={event_data['recurrence_count']}"
             if recurrence_end_date_str:
                 end_dt = datetime.fromisoformat(recurrence_end_date_str.replace('Z', '+00:00'))
-                rrule += f";UNTIL={end_dt.strftime('%Y%m%dT000000Z')}"
+                # All-day events use DATE format; timed events use UTC DATE-TIME
+                if is_all_day:
+                    rrule += f";UNTIL={end_dt.strftime('%Y%m%d')}"
+                else:
+                    rrule += f";UNTIL={end_dt.strftime('%Y%m%dT235959Z')}"
+            logger.info(f"RRULE for '{event_data['title']}': {rrule}")
             calendar_resource['recurrence'] = [rrule]
 
         logger.info(f"Pushing event to Google: {event_data['title']}")

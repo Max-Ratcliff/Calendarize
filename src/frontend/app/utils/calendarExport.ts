@@ -146,9 +146,23 @@ export const pushAllToGoogleCalendar = async (events: CalendarEvent[]) => {
     }
 };
 
-export const exportToOutlook = (event: CalendarEvent) => {
-	const url = event.outlook_link;
-	window.open(url, "_blank");
+export const downloadBundleICS = (events: CalendarEvent[]) => {
+	const vevents = events
+		.map(e => e.ics_string || '')
+		.filter(Boolean)
+		.flatMap(ics => ics.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g) ?? [])
+		.join('\r\n');
+
+	if (!vevents) { toast.error('No events to download.'); return; }
+
+	const bundle = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendarize//EN\r\nCALSCALE:GREGORIAN\r\n${vevents}\r\nEND:VCALENDAR`;
+	const blob = new Blob([bundle], { type: 'text/calendar;charset=utf-8' });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url; a.download = 'calendarize-events.ics';
+	document.body.appendChild(a); a.click();
+	document.body.removeChild(a); URL.revokeObjectURL(url);
+	toast.success(`Downloaded ${events.length} event${events.length > 1 ? 's' : ''} as .ics bundle.`);
 };
 
 export const exportToICal = (event: CalendarEvent) => {

@@ -25,8 +25,8 @@ def parse_recurring_pattern(event) -> str:
         if event.recurrence_pattern == "WEEKLY" and event.recurrence_days:
             recurrence_rule += f";BYDAY={','.join(event.recurrence_days)}"
 
-        # Add recurrence count if specified
-        if event.recurrence_count:
+        # Only add COUNT if there's no end date — COUNT and UNTIL can't coexist (RFC 5545)
+        if event.recurrence_count and not event.recurrence_end_date:
             recurrence_rule += f";COUNT={event.recurrence_count}"
 
         # Add recurrence end date if specified
@@ -46,8 +46,8 @@ def get_ical_rrule(event) -> vRecur:
         if event.recurrence_pattern.upper() == "WEEKLY" and event.recurrence_days:
             rrule["BYDAY"] = event.recurrence_days
 
-        # Add recurrence count if specified
-        if event.recurrence_count:
+        # Only add COUNT if there's no end date — COUNT and UNTIL can't coexist (RFC 5545)
+        if event.recurrence_count and not event.recurrence_end_date:
             rrule["COUNT"] = event.recurrence_count
 
         # Add recurrence end date if specified
