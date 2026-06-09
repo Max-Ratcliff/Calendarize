@@ -15,7 +15,7 @@ SCOPES = [
     'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
 ]
 # Container default; override with GOOGLE_CLIENT_SECRET_PATH for local dev
-CLIENT_SECRET_PATH = os.getenv('GOOGLE_CLIENT_SECRET_PATH', '/app/utils/client_secret.json')
+CLIENT_SECRET_PATH = os.getenv('GOOGLE_CLIENT_SECRET_PATH', '/app/secret-files/google/client_secret.json')
 
 def get_flow(redirect_uri: str):
     """Creates a Google OAuth flow instance."""

@@ -9,7 +9,10 @@ from utils.logger import logger
 
 # --- Configuration ---
 
-SERVICE_ACCOUNT_KEY_PATH = "/app/event_generation/config/firebase_servicekey.json"
+SERVICE_ACCOUNT_KEY_PATH = os.getenv(
+    "FIREBASE_SERVICE_KEY_PATH",
+    "/app/secret-files/firebase/firebase_servicekey.json",
+)
 
 # Daily request limit for the Gemini Flash free tier.
 FREE_TIER_LIMIT_PER_DAY = 1500

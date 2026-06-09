@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Configuration
 PROJECT_ID="calendarize-452205"
@@ -10,6 +11,8 @@ IMAGE_PATH="$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/backend:latest"
 # Production URLs
 FRONTEND_URL="https://calendarize.ratcliff.cc"
 CALLBACK_URL="https://api.calendarize.ratcliff.cc/auth/google/callback"
+GOOGLE_CLIENT_SECRET_PATH="/app/secret-files/google/client_secret.json"
+FIREBASE_SERVICE_KEY_PATH="/app/secret-files/firebase/firebase_servicekey.json"
 
 # Prerequisites (one-time setup):
 #   1. gcloud secrets create GEMINI_API_KEY --data-file=<path-to-key>
@@ -32,8 +35,8 @@ echo "Deploying to Cloud Run..."
 gcloud run deploy $SERVICE_NAME \
   --image $IMAGE_PATH \
   --region $REGION \
-  --set-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest,/app/utils/client_secret.json=GOOGLE_CLIENT_SECRET:latest,/app/event_generation/config/firebase_servicekey.json=FIREBASE_SERVICE_KEY:latest" \
-  --set-env-vars="ENV=production,FRONTEND_URL=$FRONTEND_URL,CALLBACK_URL=$CALLBACK_URL" \
+  --set-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest,$GOOGLE_CLIENT_SECRET_PATH=GOOGLE_CLIENT_SECRET:latest,$FIREBASE_SERVICE_KEY_PATH=FIREBASE_SERVICE_KEY:latest" \
+  --set-env-vars="ENV=production,FRONTEND_URL=$FRONTEND_URL,CALLBACK_URL=$CALLBACK_URL,GOOGLE_CLIENT_SECRET_PATH=$GOOGLE_CLIENT_SECRET_PATH,FIREBASE_SERVICE_KEY_PATH=$FIREBASE_SERVICE_KEY_PATH" \
   --allow-unauthenticated
 
 echo "Deployment complete!"
